@@ -7,6 +7,31 @@
 .buildlog/
 .history
 
+# Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+.gradle/
+local.properties
+.DS_Store
+/captures
+.externalNativeBuild
+.cxx/
+*.hprof
+
+# Cursor IDE
+.cursor/
+.cursorrules
+.cursorignore
+
 
 
 # Flutter repo-specific
@@ -56,6 +81,9 @@ unlinked_spec.ds
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
 *.jks
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -109,6 +137,30 @@ coverage/
 
 # Symbols
 app.*.symbols
+
+# Development and IDE files
+.vscode/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
