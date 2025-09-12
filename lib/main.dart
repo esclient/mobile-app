@@ -12,7 +12,7 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   final GraphQLClient client;
-  MyApp({required this.client});
+  const MyApp({super.key, required this.client});
 
   @override
   Widget build(BuildContext context) {
@@ -28,13 +28,13 @@ class MyApp extends StatelessWidget {
 
 class CommentsList extends StatefulWidget {
   final CommentService commentService;
-  CommentsList({required this.commentService});
+  const CommentsList({super.key, required this.commentService});
 
   @override
-  _CommentsListState createState() => _CommentsListState();
+  CommentsListState createState() => CommentsListState();
 }
 
-class _CommentsListState extends State<CommentsList> {
+class CommentsListState extends State<CommentsList> {
   late Future<List<Comment>> _future;
 
   @override
