@@ -12,7 +12,7 @@ class ModsListPage extends StatefulWidget {
   State<ModsListPage> createState() => _ModsListPageState();
 }
 
-class _ModsListPageState extends State<ModsListPage> {
+class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMixin {
   int selectedPeriodIndex = 0;
   List<ModItem> mods = [];
   bool isLoading = true;
@@ -35,6 +35,8 @@ class _ModsListPageState extends State<ModsListPage> {
   }
 
   Future<void> _loadMods() async {
+    if (!mounted) return;
+    
     setState(() {
       isLoading = true;
     });
@@ -43,15 +45,19 @@ class _ModsListPageState extends State<ModsListPage> {
       final loadedMods = await widget.modsService.fetchMods(
         period: periodKeys[selectedPeriodIndex],
       );
-      setState(() {
-        mods = loadedMods;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      
       if (mounted) {
+        setState(() {
+          mods = loadedMods;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Ошибка загрузки модов: $e'),
@@ -68,21 +74,28 @@ class _ModsListPageState extends State<ModsListPage> {
       return;
     }
 
+    if (!mounted) return;
+    
     setState(() {
       isLoading = true;
     });
 
     try {
       final searchResults = await widget.modsService.searchMods(query);
-      setState(() {
-        mods = searchResults;
-        isLoading = false;
-        searchQuery = query;
-      });
+      
+      if (mounted) {
+        setState(() {
+          mods = searchResults;
+          isLoading = false;
+          searchQuery = query;
+        });
+      }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -113,76 +126,102 @@ class _ModsListPageState extends State<ModsListPage> {
             bottom: BorderSide(color: Color(0xFF374151), width: 1),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: _showSearchDialog,
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF374151)),
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 10),
-                        const Icon(
-                          Icons.search,
-                          color: Color(0xBF9B9B9B),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 13),
-                        Text(
-                          searchQuery.isNotEmpty ? searchQuery : 'Поиск модов',
-                          style: TextStyle(
-                            color: searchQuery.isNotEmpty 
-                                ? Colors.white 
-                                : const Color(0xBF9B9B9B),
-                            fontSize: 16,
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.w400,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _showSearchDialog,
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF374151)),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 10),
+                          const Icon(
+                            Icons.search,
+                            color: Color(0xBF9B9B9B),
+                            size: 20,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 13),
+                          Expanded(
+                            child: Text(
+                              searchQuery.isNotEmpty ? searchQuery : 'Поиск модов',
+                              style: TextStyle(
+                                color: searchQuery.isNotEmpty 
+                                    ? Colors.white 
+                                    : const Color(0xBF9B9B9B),
+                                fontSize: 16,
+                                fontFamily: 'Roboto',
+                                fontWeight: FontWeight.w400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 7),
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF374151)),
+                const SizedBox(width: 7),
+                _buildActionButton(
+                  icon: Icons.filter_list,
+                  onTap: () {
+                    // TODO: Implement filter functionality
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Фильтры пока не реализованы'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
-                child: const Icon(
-                  Icons.filter_list,
-                  color: Color(0xBF9B9B9B),
-                  size: 24,
+                const SizedBox(width: 7),
+                _buildActionButton(
+                  icon: Icons.notifications,
+                  onTap: () {
+                    // TODO: Implement notifications
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Уведомления пока не реализованы'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
-              ),
-              const SizedBox(width: 7),
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF374151)),
-                ),
-                child: const Icon(
-                  Icons.notifications,
-                  color: Color(0xBF9B9B9B),
-                  size: 20,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon, 
+    required VoidCallback onTap,
+    double size = 20,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF374151)),
+        ),
+        child: Icon(
+          icon,
+          color: const Color(0xBF9B9B9B),
+          size: size,
         ),
       ),
     );
@@ -213,6 +252,10 @@ class _ModsListPageState extends State<ModsListPage> {
                 borderSide: BorderSide(color: Color(0xFF388E3C)),
               ),
             ),
+            onSubmitted: (value) {
+              Navigator.of(context).pop();
+              _searchMods(value);
+            },
           ),
           actions: [
             TextButton(
@@ -263,57 +306,57 @@ class _ModsListPageState extends State<ModsListPage> {
             ),
           ),
           const SizedBox(height: 15),
-          Container(
+          SizedBox(
             height: 54,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: SingleChildScrollView(
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: periods.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  String period = entry.value;
-                  bool isSelected = selectedPeriodIndex == index;
-                  
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: GestureDetector(
-                      onTap: () {
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              itemCount: periods.length,
+              itemBuilder: (context, index) {
+                final isSelected = selectedPeriodIndex == index;
+                
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (selectedPeriodIndex != index) {
                         setState(() {
                           selectedPeriodIndex = index;
                           searchQuery = '';
                         });
                         _searchController.clear();
                         _loadMods();
-                      },
-                      child: Container(
-                        height: 43,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF388E3C) : null,
-                          border: Border.all(
-                            color: isSelected 
-                                ? const Color(0xFF388E3C) 
-                                : const Color(0xFF374151),
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      height: 43,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF388E3C) : null,
+                        border: Border.all(
+                          color: isSelected 
+                              ? const Color(0xFF388E3C) 
+                              : const Color(0xFF374151),
+                          width: 2,
                         ),
-                        child: Center(
-                          child: Text(
-                            period,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontFamily: 'Roboto',
-                              fontWeight: FontWeight.w600,
-                            ),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Center(
+                        child: Text(
+                          periods[index],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: 'Roboto',
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -327,9 +370,11 @@ class _ModsListPageState extends State<ModsListPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Список модов',
-            style: TextStyle(
+          Text(
+            searchQuery.isNotEmpty 
+                ? 'Результаты поиска "${searchQuery}"'
+                : 'Список модов',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontFamily: 'Inter',
@@ -346,21 +391,66 @@ class _ModsListPageState extends State<ModsListPage> {
                     ),
                   )
                 : mods.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Моды не найдены',
-                          style: TextStyle(
-                            color: Color(0xFF9CA3AF),
-                            fontSize: 16,
-                          ),
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              searchQuery.isNotEmpty 
+                                  ? Icons.search_off 
+                                  : Icons.inventory_2_outlined,
+                              size: 64,
+                              color: const Color(0xFF9CA3AF),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              searchQuery.isNotEmpty 
+                                  ? 'По запросу "${searchQuery}" ничего не найдено'
+                                  : 'Моды не найдены',
+                              style: const TextStyle(
+                                color: Color(0xFF9CA3AF),
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            if (searchQuery.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    searchQuery = '';
+                                  });
+                                  _searchController.clear();
+                                  _loadMods();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF388E3C),
+                                ),
+                                child: const Text(
+                                  'Показать все моды',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       )
-                    : ListView.separated(
-                        itemCount: mods.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) => ModCard(
-                          mod: mods[index],
-                          onTap: () => _onModTap(mods[index]),
+                    : RefreshIndicator(
+                        onRefresh: _loadMods,
+                        color: const Color(0xFF388E3C),
+                        backgroundColor: const Color(0xFF374151),
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: mods.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final mod = mods[index];
+                            return ModCard(
+                              key: ValueKey(mod.id),
+                              mod: mod,
+                              onTap: () => _onModTap(mod),
+                            );
+                          },
                         ),
                       ),
           ),
@@ -369,136 +459,189 @@ class _ModsListPageState extends State<ModsListPage> {
     );
   }
 
-  Widget _onModTap (ModItem mod) {
-    return Container(
-      height: 134,
-      decoration: BoxDecoration(
-        color: const Color(0xFF181F2A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF374151)),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 10),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+  void _onModTap(ModItem mod) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: Color(0xFF1F2937),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: NetworkImage(mod.imageUrl),
-                    fit: BoxFit.cover,
+                  color: const Color(0xFF9CA3AF),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Hero(
+                            tag: 'mod_image_${mod.id}',
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                image: DecorationImage(
+                                  image: NetworkImage(mod.imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  mod.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Автор: ${mod.authorId}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF9CA3AF),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Text(
+                                      mod.rating.toStringAsFixed(1),
+                                      style: const TextStyle(
+                                        color: Color(0xFFF59E0B),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '(${mod.formattedRatingsCount})',
+                                      style: const TextStyle(
+                                        color: Color(0xFF9CA3AF),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      '${mod.formattedDownloadsCount} загрузок',
+                                      style: const TextStyle(
+                                        color: Color(0xFF9CA3AF),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Описание:',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            mod.description,
+                            style: const TextStyle(
+                              color: Color(0xFFD1D5DB),
+                              fontSize: 14,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      if (mod.tags.isNotEmpty) ...[
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: mod.tags.map((tag) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF374151),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                tag,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Скачивание "${mod.title}" началось'),
+                                backgroundColor: const Color(0xFF388E3C),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF388E3C),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Скачать мод',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(mod.starsCount, (starIndex) {
-                  return Container(
-                    width: 10,
-                    height: 10,
-                    margin: const EdgeInsets.only(right: 2),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF59E0B),
-                      shape: BoxShape.circle,
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                mod.rating.toStringAsFixed(1),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFFF59E0B),
-                  fontSize: 14,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
-                  height: 1.71,
-                ),
-              ),
-              Text(
-                mod.formattedRatingsCount,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFF9CA3AF),
-                  fontSize: 7,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w400,
-                  height: 2.29,
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 19),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    mod.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontFamily: 'Roboto',
-                      fontWeight: FontWeight.w600,
-                      height: 1.50,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Expanded(
-                    child: Text(
-                      mod.description,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFFD1D5DB),
-                        fontSize: 12,
-                        fontFamily: 'Roboto',
-                        fontWeight: FontWeight.w400,
-                        height: 1.62,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 5,
-                    children: mod.tags.take(5).map((tag) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF374151),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFF374151)),
-                        ),
-                        child: Text(
-                          tag,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Color(0xFFD1D5DB),
-                            fontSize: 10,
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.w500,
-                            height: 1.33,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -511,15 +654,24 @@ class _ModsListPageState extends State<ModsListPage> {
           top: BorderSide(color: Color(0xFF374151), width: 1),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildNavItem('Главная', Icons.home, true, () {}),
-          _buildNavItem('Закладки', Icons.bookmark, false, () {}),
-          _buildNavItem('Профиль', Icons.person, false, () {
-            Navigator.pushNamed(context, '/comments');
-          }),
-        ],
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildNavItem('Главная', Icons.home, true, () {}),
+            _buildNavItem('Закладки', Icons.bookmark, false, () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Закладки пока не реализованы'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }),
+            _buildNavItem('Профиль', Icons.person, false, () {
+              Navigator.pushNamed(context, '/comments');
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -527,27 +679,30 @@ class _ModsListPageState extends State<ModsListPage> {
   Widget _buildNavItem(String title, IconData icon, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 24,
-            color: isActive ? const Color(0xFF388E3C) : const Color(0xFF9CA3AF),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 24,
               color: isActive ? const Color(0xFF388E3C) : const Color(0xFF9CA3AF),
-              fontSize: 12,
-              fontFamily: 'Roboto',
-              fontWeight: FontWeight.w500,
-              height: 1.33,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isActive ? const Color(0xFF388E3C) : const Color(0xFF9CA3AF),
+                fontSize: 12,
+                fontFamily: 'Roboto',
+                fontWeight: FontWeight.w500,
+                height: 1.33,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

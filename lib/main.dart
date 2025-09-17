@@ -5,6 +5,8 @@ import 'services/comments.dart';
 import 'services/mods_service.dart';
 import 'model/comments.dart';
 import 'pages/mods_list_page.dart';
+import 'utils/app_theme.dart';
+import 'utils/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,22 +24,16 @@ class MyApp extends StatelessWidget {
     final modsService = ModsService(client);
     
     return MaterialApp(
-      title: 'ESCLIENT Mobile',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        scaffoldBackgroundColor: const Color(0xFF1F2937),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1F2937),
-          foregroundColor: Colors.white,
-        ),
-      ),
-      home: ModsListPage(modsService: modsService), // Передаем сервис модов
+      title: AppStrings.appTitle,
+      theme: AppTheme.darkTheme,
+      home: ModsListPage(modsService: modsService),
       routes: {
-        '/comments': (context) => Scaffold(
-          appBar: AppBar(title: const Text('Комментарии')),
+        AppRoutes.comments: (context) => Scaffold(
+          appBar: AppBar(title: const Text(AppStrings.navComments)),
           body: CommentsList(commentService: commentService),
         ),
       },
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -47,7 +43,7 @@ class CommentsList extends StatefulWidget {
   const CommentsList({super.key, required this.commentService});
 
   @override
-  _CommentsListState createState() => _CommentsListState();
+  State<CommentsList> createState() => _CommentsListState();
 }
 
 class _CommentsListState extends State<CommentsList> {
@@ -67,24 +63,104 @@ class _CommentsListState extends State<CommentsList> {
         if (snap.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snap.hasError) {
-          return Center(child: Text('Ошибка: ${snap.error}'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: AppTheme.textMuted,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Ошибка: ${snap.error}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
         }
+        
         final comments = snap.data!;
-        return ListView(
-          children: comments
-              .map(
-                (c) => ListTile(
-                  title: Text(
-                    c.text,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Text(
-                    '${c.authorId} • ${DateTime.fromMillisecondsSinceEpoch(c.createdAt * 1000)}',
-                    style: const TextStyle(color: Color(0xFF9CA3AF)),
+        
+        if (comments.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.comment_outlined,
+                  size: 64,
+                  color: AppTheme.textMuted,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Комментарии не найдены',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return RefreshIndicator(
+          onRefresh: () async {
+            setState(() {
+              _future = widget.commentService.fetchComments('69');
+            });
+          },
+          child: ListView.separated(
+            padding: const EdgeInsets.all(AppSizes.paddingMedium),
+            itemCount: comments.length,
+            separatorBuilder: (context, index) => const SizedBox(height: AppSizes.spacing),
+            itemBuilder: (context, index) {
+              final comment = comments[index];
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSizes.paddingLarge),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        comment.text,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: AppSizes.spacing),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            size: 16,
+                            color: AppTheme.textMuted,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            comment.authorId,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 16),
+                          Icon(
+                            Icons.access_time,
+                            size: 16,
+                            color: AppTheme.textMuted,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            DateTime.fromMillisecondsSinceEpoch(comment.createdAt * 1000)
+                                .toString()
+                                .substring(0, 16),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              )
-              .toList(),
+              );
+            },
+          ),
         );
       },
     );

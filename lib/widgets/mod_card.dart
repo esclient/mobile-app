@@ -13,23 +13,27 @@ class ModCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 134,
-        decoration: BoxDecoration(
-          color: const Color(0xFF181F2A),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF374151)),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 10),
-            _buildLeftColumn(),
-            const SizedBox(width: 13),
-            Expanded(child: _buildRightColumn()),
-            const SizedBox(width: 10),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 134,
+          decoration: BoxDecoration(
+            color: const Color(0xFF181F2A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF374151)),
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 10),
+              _buildLeftColumn(),
+              const SizedBox(width: 13),
+              Expanded(child: _buildRightColumn()),
+              const SizedBox(width: 10),
+            ],
+          ),
         ),
       ),
     );
@@ -39,14 +43,17 @@ class ModCard extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(
-              image: NetworkImage(mod.imageUrl),
-              fit: BoxFit.cover,
+        Hero(
+          tag: 'mod_image_${mod.id}',
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              image: DecorationImage(
+                image: NetworkImage(mod.imageUrl),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ),
@@ -111,6 +118,8 @@ class ModCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
               height: 1.50,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Expanded(
@@ -135,15 +144,17 @@ class ModCard extends StatelessWidget {
   }
 
   Widget _buildTags() {
+    final visibleTags = mod.tags.take(5).toList();
+    
     return Wrap(
-      spacing: 10,
+      spacing: 6,
       runSpacing: 5,
-      children: mod.tags.take(5).map((tag) {
+      children: visibleTags.map((tag) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           decoration: BoxDecoration(
             color: const Color(0xFF374151),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFF374151)),
           ),
           child: Text(
@@ -151,7 +162,7 @@ class ModCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Color(0xFFD1D5DB),
-              fontSize: 10,
+              fontSize: 9,
               fontFamily: 'Roboto',
               fontWeight: FontWeight.w500,
               height: 1.33,

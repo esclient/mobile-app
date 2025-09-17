@@ -1,1 +1,137 @@
-import 'package:graphql_flutter/graphql_flutter.dart';\nimport '../model/mod_item.dart';\n\nclass ModsService {\n  final GraphQLClient client;\n\n  ModsService(this.client);\n\n  // Запрос для получения списка модов\n  static const String getModsQuery = r'''\n    query GetMods($period: String, $limit: Int, $offset: Int) {\n      mods(period: $period, limit: $limit, offset: $offset) {\n        id\n        title\n        description\n        rating\n        ratingsCount\n        imageUrl\n        tags\n        createdAt\n        authorId\n        downloadsCount\n      }\n    }\n  ''';\n\n  Future<List<ModItem>> fetchMods({\n    String period = 'all_time',\n    int limit = 20,\n    int offset = 0,\n  }) async {\n    try {\n      final QueryOptions options = QueryOptions(\n        document: gql(getModsQuery),\n        variables: {\n          'period': period,\n          'limit': limit,\n          'offset': offset,\n        },\n      );\n\n      final QueryResult result = await client.query(options);\n\n      if (result.hasException) {\n        print('GraphQL Exception: ${result.exception}');\n        // Возвращаем моковые данные в случае ошибки\n        return _getMockMods();\n      }\n\n      final List<dynamic> modsData = result.data?['mods'] ?? [];\n      return modsData.map((json) => ModItem.fromJson(json)).toList();\n    } catch (e) {\n      print('Error fetching mods: $e');\n      // Возвращаем моковые данные в случае ошибки\n      return _getMockMods();\n    }\n  }\n\n  // Моковые данные для демонстрации\n  List<ModItem> _getMockMods() {\n    return [\n      ModItem(\n        id: '1',\n        title: 'Better Graphics Mod',\n        description: 'This mod enhances the visual experience with improved graphics, better lighting, and enhanced textures. Perfect for players who want a more immersive gaming experience.',\n        rating: 4.8,\n        ratingsCount: 5432,\n        imageUrl: 'https://picsum.photos/48/48?random=1',\n        tags: ['Graphics', 'Visual', 'Enhancement', 'Quality', 'Immersion'],\n        createdAt: DateTime.now().subtract(const Duration(days: 30)),\n        authorId: 'author_1',\n        downloadsCount: 15420,\n      ),\n      ModItem(\n        id: '2',\n        title: 'Ultimate Gameplay Overhaul',\n        description: 'Complete gameplay transformation with new mechanics, improved AI, and balanced difficulty settings. A must-have for experienced players.',\n        rating: 4.6,\n        ratingsCount: 3210,\n        imageUrl: 'https://picsum.photos/48/48?random=2',\n        tags: ['Gameplay', 'Overhaul', 'Mechanics', 'AI'],\n        createdAt: DateTime.now().subtract(const Duration(days: 15)),\n        authorId: 'author_2',\n        downloadsCount: 8765,\n      ),\n      ModItem(\n        id: '3',\n        title: 'Audio Enhancement Pack',\n        description: 'High-quality audio improvements including better sound effects, ambient sounds, and music tracks.',\n        rating: 4.3,\n        ratingsCount: 1876,\n        imageUrl: 'https://picsum.photos/48/48?random=3',\n        tags: ['Audio', 'Sound', 'Music'],\n        createdAt: DateTime.now().subtract(const Duration(days: 7)),\n        authorId: 'author_3',\n        downloadsCount: 4321,\n      ),\n      ModItem(\n        id: '4',\n        title: 'Performance Optimizer',\n        description: 'Optimizes game performance for better FPS and reduced loading times on lower-end systems.',\n        rating: 4.1,\n        ratingsCount: 987,\n        imageUrl: 'https://picsum.photos/48/48?random=4',\n        tags: ['Performance', 'Optimization'],\n        createdAt: DateTime.now().subtract(const Duration(days: 3)),\n        authorId: 'author_4',\n        downloadsCount: 2109,\n      ),\n      ModItem(\n        id: '5',\n        title: 'Content Expansion',\n        description: 'Adds new content including quests, items, and characters to extend your gaming experience.',\n        rating: 4.9,\n        ratingsCount: 7654,\n        imageUrl: 'https://picsum.photos/48/48?random=5',\n        tags: ['Content', 'Expansion', 'Quests', 'Items', 'Characters'],\n        createdAt: DateTime.now().subtract(const Duration(days: 1)),\n        authorId: 'author_5',\n        downloadsCount: 23456,\n      ),\n    ];\n  }\n\n  // Поиск модов\n  Future<List<ModItem>> searchMods(String query) async {\n    // Здесь должен быть реальный поиск через GraphQL\n    // Пока возвращаем фильтрованные моковые данные\n    final allMods = await fetchMods();\n    return allMods\n        .where((mod) =>\n            mod.title.toLowerCase().contains(query.toLowerCase()) ||\n            mod.description.toLowerCase().contains(query.toLowerCase()) ||\n            mod.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase())))\n        .toList();\n  }\n}\n"
+import 'package:graphql_flutter/graphql_flutter.dart';
+import '../model/mod_item.dart';
+
+class ModsService {
+  final GraphQLClient client;
+
+  ModsService(this.client);
+
+  // Запрос для получения списка модов
+  static const String getModsQuery = r'''
+    query GetMods($period: String, $limit: Int, $offset: Int) {
+      mods(period: $period, limit: $limit, offset: $offset) {
+        id
+        title
+        description
+        rating
+        ratingsCount
+        imageUrl
+        tags
+        createdAt
+        authorId
+        downloadsCount
+      }
+    }
+  ''';
+
+  Future<List<ModItem>> fetchMods({
+    String period = 'all_time',
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      final QueryOptions options = QueryOptions(
+        document: gql(getModsQuery),
+        variables: {
+          'period': period,
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      final QueryResult result = await client.query(options);
+
+      if (result.hasException) {
+        print('GraphQL Exception: ${result.exception}');
+        // Возвращаем моковые данные в случае ошибки
+        return _getMockMods();
+      }
+
+      final List<dynamic> modsData = result.data?['mods'] ?? [];
+      return modsData.map((json) => ModItem.fromJson(json)).toList();
+    } catch (e) {
+      print('Error fetching mods: $e');
+      // Возвращаем моковые данные в случае ошибки
+      return _getMockMods();
+    }
+  }
+
+  // Моковые данные для демонстрации
+  List<ModItem> _getMockMods() {
+    return [
+      ModItem(
+        id: '1',
+        title: 'Better Graphics Mod',
+        description: 'This mod enhances the visual experience with improved graphics, better lighting, and enhanced textures. Perfect for players who want a more immersive gaming experience.',
+        rating: 4.8,
+        ratingsCount: 5432,
+        imageUrl: 'https://picsum.photos/48/48?random=1',
+        tags: ['Graphics', 'Visual', 'Enhancement', 'Quality', 'Immersion'],
+        createdAt: DateTime.now().subtract(const Duration(days: 30)),
+        authorId: 'author_1',
+        downloadsCount: 15420,
+      ),
+      ModItem(
+        id: '2',
+        title: 'Ultimate Gameplay Overhaul',
+        description: 'Complete gameplay transformation with new mechanics, improved AI, and balanced difficulty settings. A must-have for experienced players.',
+        rating: 4.6,
+        ratingsCount: 3210,
+        imageUrl: 'https://picsum.photos/48/48?random=2',
+        tags: ['Gameplay', 'Overhaul', 'Mechanics', 'AI'],
+        createdAt: DateTime.now().subtract(const Duration(days: 15)),
+        authorId: 'author_2',
+        downloadsCount: 8765,
+      ),
+      ModItem(
+        id: '3',
+        title: 'Audio Enhancement Pack',
+        description: 'High-quality audio improvements including better sound effects, ambient sounds, and music tracks.',
+        rating: 4.3,
+        ratingsCount: 1876,
+        imageUrl: 'https://picsum.photos/48/48?random=3',
+        tags: ['Audio', 'Sound', 'Music'],
+        createdAt: DateTime.now().subtract(const Duration(days: 7)),
+        authorId: 'author_3',
+        downloadsCount: 4321,
+      ),
+      ModItem(
+        id: '4',
+        title: 'Performance Optimizer',
+        description: 'Optimizes game performance for better FPS and reduced loading times on lower-end systems.',
+        rating: 4.1,
+        ratingsCount: 987,
+        imageUrl: 'https://picsum.photos/48/48?random=4',
+        tags: ['Performance', 'Optimization'],
+        createdAt: DateTime.now().subtract(const Duration(days: 3)),
+        authorId: 'author_4',
+        downloadsCount: 2109,
+      ),
+      ModItem(
+        id: '5',
+        title: 'Content Expansion',
+        description: 'Adds new content including quests, items, and characters to extend your gaming experience.',
+        rating: 4.9,
+        ratingsCount: 7654,
+        imageUrl: 'https://picsum.photos/48/48?random=5',
+        tags: ['Content', 'Expansion', 'Quests', 'Items', 'Characters'],
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        authorId: 'author_5',
+        downloadsCount: 23456,
+      ),
+    ];
+  }
+
+  // Поиск модов
+  Future<List<ModItem>> searchMods(String query) async {
+    // Здесь должен быть реальный поиск через GraphQL
+    // Пока возвращаем фильтрованные моковые данные
+    final allMods = await fetchMods();
+    return allMods
+        .where((mod) =>
+            mod.title.toLowerCase().contains(query.toLowerCase()) ||
+            mod.description.toLowerCase().contains(query.toLowerCase()) ||
+            mod.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase())))
+        .toList();
+  }
+}
