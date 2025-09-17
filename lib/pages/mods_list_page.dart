@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../model/mod_item.dart';
 import '../services/mods_service.dart';
 import '../widgets/mod_card.dart';
+import '../components/interactive_widgets.dart';
 
 class ModsListPage extends StatefulWidget {
   final ModsService modsService;
@@ -17,7 +18,6 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
   List<ModItem> mods = [];
   bool isLoading = true;
   String searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
   
   final List<String> periods = ['За всё время', 'За месяц', 'За неделю', 'Недавние'];
   final List<String> periodKeys = ['all_time', 'month', 'week', 'recent'];
@@ -26,12 +26,6 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
   void initState() {
     super.initState();
     _loadMods();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadMods() async {
@@ -70,6 +64,9 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
 
   Future<void> _searchMods(String query) async {
     if (query.isEmpty) {
+      setState(() {
+        searchQuery = '';
+      });
       _loadMods();
       return;
     }
@@ -78,6 +75,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
     
     setState(() {
       isLoading = true;
+      searchQuery = query;
     });
 
     try {
@@ -87,7 +85,6 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         setState(() {
           mods = searchResults;
           isLoading = false;
-          searchQuery = query;
         });
       }
     } catch (e) {
@@ -103,188 +100,53 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2937),
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          _buildPeriodSelector(),
-          Expanded(child: _buildModsList()),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomNavBar(),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFF1F2937),
-      elevation: 0,
-      toolbarHeight: 83,
-      automaticallyImplyLeading: false,
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Color(0xFF374151), width: 1),
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _showSearchDialog,
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF374151)),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 10),
-                          const Icon(
-                            Icons.search,
-                            color: Color(0xBF9B9B9B),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 13),
-                          Expanded(
-                            child: Text(
-                              searchQuery.isNotEmpty ? searchQuery : 'Поиск модов',
-                              style: TextStyle(
-                                color: searchQuery.isNotEmpty 
-                                    ? Colors.white 
-                                    : const Color(0xBF9B9B9B),
-                                fontSize: 16,
-                                fontFamily: 'Roboto',
-                                fontWeight: FontWeight.w400,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header with search bar
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFF1F2937),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFF374151), width: 1),
+                ),
+              ),
+              child: InteractiveSearchBar(
+                placeholder: 'Поиск модов',
+                searchQuery: searchQuery.isNotEmpty ? searchQuery : null,
+                onSearchPressed: _searchMods,
+                onFilterPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Фильтры пока не реализованы'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: Color(0xFF388E3C),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 7),
-                _buildActionButton(
-                  icon: Icons.filter_list,
-                  onTap: () {
-                    // TODO: Implement filter functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Фильтры пока не реализованы'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 7),
-                _buildActionButton(
-                  icon: Icons.notifications,
-                  onTap: () {
-                    // TODO: Implement notifications
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Уведомления пока не реализованы'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                  );
+                },
+                onNotificationPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Уведомления пока не реализованы'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: Color(0xFF388E3C),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildActionButton({
-    required IconData icon, 
-    required VoidCallback onTap,
-    double size = 20,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF374151)),
-        ),
-        child: Icon(
-          icon,
-          color: const Color(0xBF9B9B9B),
-          size: size,
-        ),
-      ),
-    );
-  }
+            // Period selector
+            _buildPeriodSelector(),
 
-  void _showSearchDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF374151),
-          title: const Text(
-            'Поиск модов',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: TextField(
-            controller: _searchController,
-            autofocus: true,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              hintText: 'Введите название или описание мода...',
-              hintStyle: TextStyle(color: Color(0xBF9B9B9B)),
-              border: OutlineInputBorder(),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF9CA3AF)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF388E3C)),
-              ),
-            ),
-            onSubmitted: (value) {
-              Navigator.of(context).pop();
-              _searchMods(value);
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _searchController.clear();
-                Navigator.of(context).pop();
-                setState(() {
-                  searchQuery = '';
-                });
-                _loadMods();
-              },
-              child: const Text(
-                'Очистить',
-                style: TextStyle(color: Color(0xFF9CA3AF)),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _searchMods(_searchController.text);
-              },
-              child: const Text(
-                'Поиск',
-                style: TextStyle(color: Color(0xFF388E3C)),
-              ),
+            // Main content - Mods list
+            Expanded(
+              child: _buildModsList(),
             ),
           ],
-        );
-      },
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
@@ -313,47 +175,20 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
               padding: const EdgeInsets.symmetric(horizontal: 10),
               itemCount: periods.length,
               itemBuilder: (context, index) {
-                final isSelected = selectedPeriodIndex == index;
-                
                 return Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: GestureDetector(
-                    onTap: () {
+                  child: PeriodButton(
+                    text: periods[index],
+                    isSelected: selectedPeriodIndex == index,
+                    onPressed: () {
                       if (selectedPeriodIndex != index) {
                         setState(() {
                           selectedPeriodIndex = index;
                           searchQuery = '';
                         });
-                        _searchController.clear();
                         _loadMods();
                       }
                     },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      height: 43,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF388E3C) : null,
-                        border: Border.all(
-                          color: isSelected 
-                              ? const Color(0xFF388E3C) 
-                              : const Color(0xFF374151),
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Center(
-                        child: Text(
-                          periods[index],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
                 );
               },
@@ -372,7 +207,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         children: [
           Text(
             searchQuery.isNotEmpty 
-                ? 'Результаты поиска "${searchQuery}"'
+                ? 'Результаты поиска "$searchQuery"'
                 : 'Список модов',
             style: const TextStyle(
               color: Colors.white,
@@ -395,17 +230,17 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              searchQuery.isNotEmpty 
-                                  ? Icons.search_off 
-                                  : Icons.inventory_2_outlined,
+                            SvgIcon(
+                              assetPath: searchQuery.isNotEmpty 
+                                  ? 'lib/icons/main/Search.svg'
+                                  : 'lib/icons/main/Home.svg',
                               size: 64,
                               color: const Color(0xFF9CA3AF),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               searchQuery.isNotEmpty 
-                                  ? 'По запросу "${searchQuery}" ничего не найдено'
+                                  ? 'По запросу "$searchQuery" ничего не найдено'
                                   : 'Моды не найдены',
                               style: const TextStyle(
                                 color: Color(0xFF9CA3AF),
@@ -415,21 +250,14 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                             ),
                             if (searchQuery.isNotEmpty) ...[
                               const SizedBox(height: 16),
-                              ElevatedButton(
+                              PeriodButton(
+                                text: 'Показать все моды',
                                 onPressed: () {
                                   setState(() {
                                     searchQuery = '';
                                   });
-                                  _searchController.clear();
                                   _loadMods();
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF388E3C),
-                                ),
-                                child: const Text(
-                                  'Показать все моды',
-                                  style: TextStyle(color: Colors.white),
-                                ),
                               ),
                             ],
                           ],
@@ -497,8 +325,8 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                               height: 80,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
-                                image: DecorationImage(
-                                  image: NetworkImage(mod.imageUrl),
+                                image: const DecorationImage(
+                                  image: AssetImage('lib/icons/main/mod_test_pfp.png'),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -528,6 +356,8 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                                 const SizedBox(height: 5),
                                 Row(
                                   children: [
+                                    StarRating(rating: mod.rating, starSize: 12),
+                                    const SizedBox(width: 5),
                                     Text(
                                       mod.rating.toStringAsFixed(1),
                                       style: const TextStyle(
@@ -587,19 +417,12 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                           spacing: 8,
                           runSpacing: 8,
                           children: mod.tags.map((tag) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF374151),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                tag,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
+                            return InteractiveTag(
+                              text: tag,
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                _searchMods('#$tag');
+                              },
                             );
                           }).toList(),
                         ),
@@ -608,7 +431,9 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                       SizedBox(
                         width: double.infinity,
                         height: 50,
-                        child: ElevatedButton(
+                        child: PeriodButton(
+                          text: 'Скачать мод',
+                          isSelected: true,
                           onPressed: () {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -618,20 +443,6 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                               ),
                             );
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF388E3C),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Скачать мод',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                         ),
                       ),
                     ],
@@ -647,7 +458,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
 
   Widget _buildBottomNavBar() {
     return Container(
-      height: 69,
+      height: 80, // Увеличил высоту
       decoration: const BoxDecoration(
         color: Color(0xFF1F2937),
         border: Border(
@@ -658,48 +469,39 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavItem('Главная', Icons.home, true, () {}),
-            _buildNavItem('Закладки', Icons.bookmark, false, () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Закладки пока не реализованы'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            }),
-            _buildNavItem('Профиль', Icons.person, false, () {
-              Navigator.pushNamed(context, '/comments');
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(String title, IconData icon, bool isActive, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isActive ? const Color(0xFF388E3C) : const Color(0xFF9CA3AF),
+            BottomNavItem(
+              label: 'Главная',
+              iconPath: 'lib/icons/main/Home.svg',
+              isActive: true,
+              onPressed: () {},
             ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isActive ? const Color(0xFF388E3C) : const Color(0xFF9CA3AF),
-                fontSize: 12,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-                height: 1.33,
-              ),
+            BottomNavItem(
+              label: 'Закладки',
+              iconPath: 'lib/icons/main/Favorite.svg',
+              isActive: false,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Закладки пока не реализованы'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Color(0xFF388E3C),
+                  ),
+                );
+              },
+            ),
+            BottomNavItem(
+              label: 'Профиль',
+              iconPath: 'lib/icons/main/Profile.svg',
+              isActive: false,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Профиль пока не реализован'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Color(0xFF388E3C),
+                  ),
+                );
+              },
             ),
           ],
         ),
