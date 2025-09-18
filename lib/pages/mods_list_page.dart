@@ -3,6 +3,7 @@ import '../model/mod_item.dart';
 import '../services/mods_service.dart';
 import '../widgets/mod_card.dart';
 import '../components/interactive_widgets.dart';
+import 'login_page.dart';
 
 class ModsListPage extends StatefulWidget {
   final ModsService modsService;
@@ -499,6 +500,20 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                     content: Text('Профиль пока не реализован'),
                     duration: Duration(seconds: 2),
                     backgroundColor: Color(0xFF388E3C),
+                  ),
+                );
+              },
+            ),
+            // Временная кнопка для тестирования логина
+            BottomNavItem(
+              label: 'Логин',
+              iconPath: 'lib/icons/ImagePreview.svg',
+              isActive: false,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
                   ),
                 );
               },
