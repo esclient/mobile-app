@@ -42,7 +42,6 @@ class ModsService {
       final QueryResult result = await client.query(options);
 
       if (result.hasException) {
-        print('GraphQL Exception: ${result.exception}');
         // Возвращаем моковые данные в случае ошибки
         return _getMockMods();
       }
@@ -50,7 +49,6 @@ class ModsService {
       final List<dynamic> modsData = result.data?['mods'] ?? [];
       return modsData.map((json) => ModItem.fromJson(json)).toList();
     } catch (e) {
-      print('Error fetching mods: $e');
       // Возвращаем моковые данные в случае ошибки
       return _getMockMods();
     }

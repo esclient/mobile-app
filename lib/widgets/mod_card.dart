@@ -42,7 +42,7 @@ class _ModCardState extends State<ModCard> {
             boxShadow: _isHovered 
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF388E3C).withOpacity(0.2),
+                      color: const Color(0xFF388E3C).withValues(alpha: 0.2),
                       blurRadius: 8,
                       spreadRadius: 0,
                       offset: const Offset(0, 2),

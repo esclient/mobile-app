@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../components/interactive_widgets.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _isUsernameActive = false;
   bool _isPasswordActive = false;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -46,79 +48,107 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2937),
       body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              
-              // Logo section (можно добавить ваш логотип)
-              SvgIcon(
-                assetPath: 'lib/icons/logo.svg',
-                size: 80,
-                color: const Color(0xFF388E3C),
-              ),
-              const SizedBox(height: 40),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      // Back button
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(),
+                            child: const Padding(
+                              padding: EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                              child: SvgIcon(
+                                assetPath: 'lib/icons/Return.svg',
+                                size: 24,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
 
-              // Login form
-              Column(
-                spacing: 20,
-                children: [
-                  // Username field
-                  _buildInputField(
-                    controller: _usernameController,
-                    focusNode: _usernameFocus,
-                    placeholder: 'Username or email',
-                    isActive: _isUsernameActive,
-                  ),
-                  
-                  // Password field
-                  _buildInputField(
-                    controller: _passwordController,
-                    focusNode: _passwordFocus,
-                    placeholder: 'Password',
-                    isActive: _isPasswordActive,
-                    isPassword: true,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
+                      // Flexible spacer
+                      const Spacer(),
 
-              // Login button
-              _buildLoginButton(),
-              const SizedBox(height: 15),
+                      // Logo section
+                      const SvgIcon(
+                        assetPath: 'lib/icons/logo.svg',
+                        size: 80,
+                        color: Color.fromRGBO(121, 121, 121, 1),
+                      ),
+                      const SizedBox(height: 40),
 
-              // Forgot password
-              GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Восстановление пароля пока не реализовано'),
-                      backgroundColor: Color(0xFF388E3C),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Forgot password?',
-                  style: TextStyle(
-                    color: Color(0xFF388E3C),
-                    fontSize: 16,
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w600,
+                      // Login form
+                      Column(
+                        children: [
+                          // Username field
+                          _buildInputField(
+                            controller: _usernameController,
+                            focusNode: _usernameFocus,
+                            placeholder: 'Username or email',
+                            isActive: _isUsernameActive,
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // Password field
+                          _buildInputField(
+                            controller: _passwordController,
+                            focusNode: _passwordFocus,
+                            placeholder: 'Password',
+                            isActive: _isPasswordActive,
+                            isPassword: true,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+
+                      // Login button
+                      _buildLoginButton(),
+                      const SizedBox(height: 15),
+
+                      // Forgot password
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Восстановление пароля пока не реализовано'),
+                              backgroundColor: Color(0xFF388E3C),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Forgot password?',
+                          style: TextStyle(
+                            color: Color(0xFF388E3C),
+                            fontSize: 16,
+                            fontFamily: 'Roboto',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                      // Flexible spacer
+                      const Spacer(),
+
+                      // Sign up button
+                      _buildSignUpButton(),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
               ),
-
-              const Spacer(),
-
-              // Sign up button
-              _buildSignUpButton(),
-              const SizedBox(height: 20),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -131,50 +161,86 @@ class _LoginPageState extends State<LoginPage> {
     required bool isActive,
     bool isPassword = false,
   }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: double.infinity,
-      height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: isActive 
-            ? const Color(0xFF374151) 
-            : const Color(0x7F374151),
-        borderRadius: BorderRadius.circular(14),
-        border: isActive 
-            ? Border.all(color: const Color(0xFF388E3C), width: 1)
-            : null,
-      ),
-      child: Center(
-        child: TextField(
-          controller: controller,
-          focusNode: focusNode,
-          obscureText: isPassword,
-          style: const TextStyle(
-            color: Colors.white,
+    return SizedBox(
+      height: 50,
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        obscureText: isPassword && !_isPasswordVisible,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w400,
+        ),
+        decoration: InputDecoration(
+          hintText: placeholder,
+          hintStyle: const TextStyle(
+            color: Color(0xBF9B9B9B),
             fontSize: 16,
             fontFamily: 'Roboto',
             fontWeight: FontWeight.w400,
           ),
-          decoration: InputDecoration(
-            hintText: placeholder,
-            hintStyle: const TextStyle(
-              color: Color(0xBF9B9B9B),
-              fontSize: 16,
-              fontFamily: 'Roboto',
-              fontWeight: FontWeight.w600,
+          suffixIcon: isPassword
+              ? AnimatedOpacity(
+                  opacity: isActive ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: GestureDetector(
+                    onTap: isActive ? () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    } : null,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      padding: const EdgeInsets.all(10.0),
+                      child: SvgIcon(
+                        assetPath: 'lib/icons/login/HideShowToggle.svg',
+                        size: 22,
+                        color: _isPasswordVisible 
+                            ? const Color(0xFF388E3C) 
+                            : const Color(0xFF374151),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFF374151),
+              width: 1,
             ),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.zero,
           ),
-          onSubmitted: (_) {
-            if (!isPassword && _passwordController.text.isEmpty) {
-              _passwordFocus.requestFocus();
-            } else {
-              _handleLogin();
-            }
-          },
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFF374151),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFF388E3C),
+              width: 1,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          fillColor: Colors.transparent,
+          filled: true,
         ),
+        onSubmitted: (_) {
+          if (!isPassword && _passwordController.text.isEmpty) {
+            _passwordFocus.requestFocus();
+          } else {
+            _handleLogin();
+          }
+        },
       ),
     );
   }
@@ -184,10 +250,10 @@ class _LoginPageState extends State<LoginPage> {
       onTap: _isLoading ? null : _handleLogin,
       child: Container(
         width: double.infinity,
-        height: 54,
+        height: 50,
         decoration: BoxDecoration(
           color: const Color(0xFF388E3C),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
           child: _isLoading
@@ -217,21 +283,21 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildSignUpButton() {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Регистрация пока не реализована'),
-            backgroundColor: Color(0xFF388E3C),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SignUpPage(),
           ),
         );
       },
       child: Container(
         width: double.infinity,
-        height: 54,
+        height: 50,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            width: 2,
-            color: const Color(0xFF388E3C),
+            width: 1,
+            color: const Color(0xFF374151),
           ),
         ),
         child: const Center(
@@ -275,7 +341,7 @@ class _LoginPageState extends State<LoginPage> {
       // Имитируем успешный логин
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Добро пожаловать, ${_usernameController.text}!'),
+          content: Text('Добро пожаровать, ${_usernameController.text}!'),
           backgroundColor: const Color(0xFF388E3C),
         ),
       );

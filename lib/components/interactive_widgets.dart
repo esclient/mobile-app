@@ -23,6 +23,21 @@ class SvgIcon extends StatelessWidget {
       colorFilter: color != null 
           ? ColorFilter.mode(color!, BlendMode.srcIn)
           : null,
+      placeholderBuilder: (BuildContext context) {
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: color?.withValues(alpha: 0.3) ?? Colors.grey.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Icon(
+            Icons.image_not_supported,
+            size: size * 0.6,
+            color: color ?? Colors.grey,
+          ),
+        );
+      },
     );
   }
 }
