@@ -29,132 +29,153 @@ class SvgIcon extends StatelessWidget {
 
 // Interactive Search Bar Component
 class InteractiveSearchBar extends StatefulWidget {
-  final String placeholder;
-  final ValueChanged<String>? onSearchPressed;
-  final VoidCallback? onFilterPressed;
-  final VoidCallback? onNotificationPressed;
+final String placeholder;
+final ValueChanged<String>? onSearchPressed;
+final VoidCallback? onFilterPressed;
+final VoidCallback? onSettingsPressed;
+final VoidCallback? onNotificationPressed;
   final String? searchQuery;
 
-  const InteractiveSearchBar({
-    super.key,
-    this.placeholder = 'Поиск модов',
-    this.onSearchPressed,
-    this.onFilterPressed,
-    this.onNotificationPressed,
+const InteractiveSearchBar({
+super.key,
+this.placeholder = 'Поиск модов',
+this.onSearchPressed,
+this.onFilterPressed,
+this.onSettingsPressed,
+  this.onNotificationPressed,
     this.searchQuery,
-  });
+});
 
   @override
   State<InteractiveSearchBar> createState() => _InteractiveSearchBarState();
 }
 
 class _InteractiveSearchBarState extends State<InteractiveSearchBar> {
-  bool _isSearchFocused = false;
-  bool _isFilterHovered = false;
+bool _isSearchFocused = false;
+bool _isFilterHovered = false;
+bool _isSettingsHovered = false;
   bool _isNotificationHovered = false;
-  late TextEditingController _searchController;
-  late FocusNode _searchFocusNode;
+late TextEditingController _searchController;
+late FocusNode _searchFocusNode;
 
-  @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController(text: widget.searchQuery ?? '');
-    _searchFocusNode = FocusNode();
-    _searchFocusNode.addListener(() {
-      setState(() {
-        _isSearchFocused = _searchFocusNode.hasFocus;
+@override
+void initState() {
+super.initState();
+_searchController = TextEditingController(text: widget.searchQuery ?? '');
+_searchFocusNode = FocusNode();
+_searchFocusNode.addListener(() {
+  setState(() {
+      _isSearchFocused = _searchFocusNode.hasFocus;
       });
-    });
-  }
+  });
+}
 
-  @override
-  void dispose() {
-    _searchController.dispose();
+@override
+void dispose() {
+  _searchController.dispose();
     _searchFocusNode.dispose();
-    super.dispose();
-  }
+  super.dispose();
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
-      child: Row(
-        children: [
-          // Search Input
-          Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 50,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _isSearchFocused
-                      ? const Color(0xFF388E3C) 
-                      : const Color(0xFF374151),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 10),
-                  SvgIcon(
-                    assetPath: 'lib/icons/main/Search.svg',
-                    size: 20,
-                    color: const Color(0xBF9B9B9B),
-                  ),
-                  const SizedBox(width: 13),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontFamily: 'Roboto',
-                        fontWeight: FontWeight.w400,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: widget.placeholder,
-                        hintStyle: const TextStyle(
-                          color: Color(0xBF9B9B9B),
-                          fontSize: 16,
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.w400,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      onSubmitted: (value) {
-                        widget.onSearchPressed?.call(value);
-                        _searchFocusNode.unfocus();
-                      },
-                      onChanged: (value) {
-                        // Можно добавить живой поиск здесь если нужно
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+@override
+Widget build(BuildContext context) {
+return Container(
+padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+child: Row(
+children: [
+// Search Input with integrated search icon
+Expanded(
+child: SizedBox(
+height: 50,
+child: TextField(
+controller: _searchController,
+focusNode: _searchFocusNode,
+style: const TextStyle(
+color: Colors.white,
+  fontSize: 16,
+    fontFamily: 'Roboto',
+    fontWeight: FontWeight.w400,
+),
+decoration: InputDecoration(
+hintText: widget.placeholder,
+hintStyle: const TextStyle(
+  color: Color(0xBF9B9B9B),
+  fontSize: 16,
+  fontFamily: 'Roboto',
+  fontWeight: FontWeight.w400,
+),
+prefixIcon: Padding(
+padding: const EdgeInsets.all(13.0),
+child: SvgIcon(
+assetPath: 'lib/icons/main/Search.svg',
+size: 20,
+color: const Color(0xBF9B9B9B),
+),
+),
+border: OutlineInputBorder(
+borderRadius: BorderRadius.circular(12),
+borderSide: const BorderSide(
+color: Color(0xFF374151),
+width: 1,
+),
+),
+enabledBorder: OutlineInputBorder(
+borderRadius: BorderRadius.circular(12),
+borderSide: const BorderSide(
+color: Color(0xFF374151),
+width: 1,
+),
+),
+focusedBorder: OutlineInputBorder(
+borderRadius: BorderRadius.circular(12),
+borderSide: const BorderSide(
+color: Color(0xFF388E3C),
+width: 1,
+),
+),
+  contentPadding: const EdgeInsets.symmetric(
+      horizontal: 16,
+        vertical: 14,
+        ),
+        fillColor: Colors.transparent,
+        filled: true,
+      ),
+    onSubmitted: (value) {
+      widget.onSearchPressed?.call(value);
+    },
+onChanged: (value) {
+// Можно добавить живой поиск здесь если нужно
+},
+),
+),
+),
+
+// Show filter button only when search is focused
+AnimatedContainer(
+duration: const Duration(milliseconds: 200),
+width: _isSearchFocused ? 53 : 0, // 46 + 7 margin
+child: _isSearchFocused 
+      ? Row(
+          children: [
+            const SizedBox(width: 7),
+            _buildActionButton(
+              isHovered: _isFilterHovered,
+            onHoverChanged: (hovered) => setState(() => _isFilterHovered = hovered),
+            onPressed: widget.onFilterPressed,
+            icon: 'lib/icons/main/Filter.svg',
           ),
-          
-          // Show filter button only when search is focused
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: _isSearchFocused ? 53 : 0, // 46 + 7 margin
-            child: _isSearchFocused 
-                ? Row(
-                    children: [
-                      const SizedBox(width: 7),
-                      _buildActionButton(
-                        isHovered: _isFilterHovered,
-                        onHoverChanged: (hovered) => setState(() => _isFilterHovered = hovered),
-                        onPressed: widget.onFilterPressed,
-                        icon: 'lib/icons/main/Gear.svg',
-                      ),
-                    ],
-                  )
-                : null,
+          ],
+          )
+          : null,
+      ),
+        
+          // Settings button - always visible
+          const SizedBox(width: 7),
+          _buildActionButton(
+            isHovered: _isSettingsHovered,
+            onHoverChanged: (hovered) => setState(() => _isSettingsHovered = hovered),
+            onPressed: widget.onSettingsPressed,
+            icon: 'lib/icons/main/Gear.svg',
           ),
           
           // Notification button - always visible
@@ -395,28 +416,30 @@ class _BottomNavItemState extends State<BottomNavItem> {
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onPressed,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SvgIcon(
               assetPath: widget.iconPath,
-              size: 24,
+              size: 20,
               color: color,
             ),
-            const SizedBox(height: 4),
-            Text(
-              widget.label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-                height: 1.2,
+            const SizedBox(height: 1),
+            Flexible(
+              child: Text(
+                widget.label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w500,
+                  height: 1.0,
+                ),
               ),
             ),
           ],

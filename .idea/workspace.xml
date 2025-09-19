@@ -6,8 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="baee2879-b8a3-4341-8e55-d032290143b7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/components/interactive_widgets.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/components/interactive_widgets.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/pages/mods_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pages/mods_list_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -125,6 +125,15 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                     ),
                   );
                 },
+                onSettingsPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Настройки пока не реализованы'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: Color(0xFF388E3C),
+                    ),
+                  );
+                },
                 onNotificationPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
