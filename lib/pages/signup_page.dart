@@ -37,253 +37,242 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2937),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
+        child: Column(
+          children: [
+            // Back button
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(left: 16, top: 10, bottom: 10),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: const Align(
+                  alignment: Alignment.centerLeft,
+                  child: SvgIcon(
+                    assetPath: 'lib/icons/Return.svg',
+                    size: 24,
+                    color: Colors.white,
+                  ),
                 ),
+              ),
+            ),
+
+            // Main content - scrollable
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
-                    // Back button
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.only(left: 16, top: 10, bottom: 10),
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: const Align(
-                          alignment: Alignment.centerLeft,
-                          child: SvgIcon(
-                            assetPath: 'lib/icons/Return.svg',
-                            size: 24,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                    // Add top spacing to center content
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+
+                    // Logo section
+                    const SvgIcon(
+                      assetPath: 'lib/icons/logo.svg',
+                      size: 80,
+                      color: Color.fromRGBO(121, 121, 121, 1),
                     ),
+                    const SizedBox(height: 40),
 
-                    // Main content positioned in center
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Logo section
-                          const SvgIcon(
-                            assetPath: 'lib/icons/logo.svg',
-                            size: 80,
-                            color: Color.fromRGBO(121, 121, 121, 1),
-                          ),
-                          const SizedBox(height: 40),
+                    // Form section
+                    Column(
+                      children: [
+                        // Email field
+                        _buildInputField(
+                          controller: _emailController,
+                          focusNode: _emailFocus,
+                          placeholder: 'Email',
+                          isActive: _isEmailActive,
+                        ),
+                        const SizedBox(height: 20),
 
-                          // Form section
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
+                        // Checkbox section
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _receiveUpdates = !_receiveUpdates;
+                            });
+                          },
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Email field section
+                              // Checkbox
                               Container(
-                                height: 124,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    // Email input
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      child: Container(
-                                        width: double.infinity,
-                                        height: 54,
-                                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                                        decoration: BoxDecoration(
-                                          color: _isEmailActive 
-                                              ? const Color(0xFF374151) 
-                                              : const Color(0x7F374151),
-                                          borderRadius: BorderRadius.circular(14),
-                                          border: _isEmailActive 
-                                              ? Border.all(color: const Color(0xFF388E3C), width: 1)
-                                              : null,
-                                        ),
-                                        child: TextField(
-                                          controller: _emailController,
-                                          focusNode: _emailFocus,
-                                          keyboardType: TextInputType.emailAddress,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontFamily: 'Roboto',
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Email',
-                                            hintStyle: TextStyle(
-                                              color: Color(0xBF9B9B9B),
-                                              fontSize: 16,
-                                              fontFamily: 'Roboto',
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            border: InputBorder.none,
-                                            contentPadding: EdgeInsets.zero,
-                                          ),
-                                          onSubmitted: (_) => _handleSignUp(),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-
-                                    // Checkbox section
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _receiveUpdates = !_receiveUpdates;
-                                          });
-                                        },
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            // Checkbox
-                                            Container(
-                                              width: 32,
-                                              height: 32,
-                                              decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  width: 2,
-                                                  color: _receiveUpdates 
-                                                      ? const Color(0xFF388E3C)
-                                                      : const Color(0xFF797979),
-                                                ),
-                                                borderRadius: BorderRadius.circular(6),
-                                                color: _receiveUpdates 
-                                                    ? const Color(0xFF388E3C) 
-                                                    : Colors.transparent,
-                                              ),
-                                              child: _receiveUpdates
-                                                  ? const Icon(
-                                                      Icons.check,
-                                                      size: 18,
-                                                      color: Colors.white,
-                                                    )
-                                                  : null,
-                                            ),
-                                            const SizedBox(width: 8),
-
-                                            // Text
-                                            Expanded(
-                                              child: Text(
-                                                'I want to receive news about my modifications (such as uploads, updates, ban and deleting) and also about new version of the app',
-                                                style: const TextStyle(
-                                                  color: Color(0xFFBBBBBB),
-                                                  fontSize: 15,
-                                                  fontFamily: 'Roboto',
-                                                  fontWeight: FontWeight.w400,
-                                                  height: 1.33,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    width: 2,
+                                    color: _receiveUpdates 
+                                        ? const Color(0xFF388E3C)
+                                        : const Color(0xFF797979),
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: _receiveUpdates 
+                                      ? const Color(0xFF388E3C) 
+                                      : Colors.transparent,
                                 ),
+                                child: _receiveUpdates
+                                    ? const Icon(
+                                        Icons.check,
+                                        size: 18,
+                                        color: Colors.white,
+                                      )
+                                    : null,
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(width: 8),
 
-                              // Sign up button
-                              Container(
-                                height: 54,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: GestureDetector(
-                                  onTap: _isLoading ? null : _handleSignUp,
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 54,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF388E3C),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Center(
-                                      child: _isLoading
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                color: Colors.white,
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Text(
-                                              'Sign up',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                                fontFamily: 'Roboto',
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                    ),
+                              // Text
+                              Expanded(
+                                child: Text(
+                                  'I want to receive news about my modifications (such as uploads, updates, ban and deleting) and also about new version of the app',
+                                  style: const TextStyle(
+                                    color: Color(0xFFBBBBBB),
+                                    fontSize: 15,
+                                    fontFamily: 'Roboto',
+                                    fontWeight: FontWeight.w400,
+                                    height: 1.33,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                        const SizedBox(height: 30),
 
-                    // Bottom log in section
-                    Container(
-                      width: double.infinity,
-                      height: 94,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
+                        // Sign up button
+                        GestureDetector(
+                          onTap: _isLoading ? null : _handleSignUp,
+                          child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: GestureDetector(
-                              onTap: () => Navigator.of(context).pop(),
-                              child: Container(
-                                width: double.infinity,
-                                height: 54,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    width: 2,
-                                    color: const Color(0xFF388E3C),
-                                  ),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Log in',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontFamily: 'Roboto',
-                                      fontWeight: FontWeight.w600,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF388E3C),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Center(
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Sign up',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontFamily: 'Roboto',
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+
+                        // Add spacing before bottom section
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+                      ],
                     ),
                   ],
                 ),
               ),
-            );
-          },
+            ),
+
+            // Bottom log in section - fixed at bottom
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: double.infinity,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 2,
+                      color: const Color(0xFF388E3C),
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Log in',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String placeholder,
+    required bool isActive,
+  }) {
+    return SizedBox(
+      height: 50,
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        keyboardType: TextInputType.emailAddress,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w400,
+        ),
+        decoration: InputDecoration(
+          hintText: placeholder,
+          hintStyle: const TextStyle(
+            color: Color(0xBF9B9B9B),
+            fontSize: 16,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w400,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFF374151),
+              width: 1,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFF374151),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFF388E3C),
+              width: 1,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          fillColor: Colors.transparent,
+          filled: true,
+        ),
+        onSubmitted: (_) => _handleSignUp(),
       ),
     );
   }
