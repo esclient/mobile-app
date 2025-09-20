@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../components/interactive_widgets.dart';
+import '../services/auth_service.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final AuthService authService;
+  
+  const LoginPage({super.key, required this.authService});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -63,7 +66,10 @@ class _LoginPageState extends State<LoginPage> {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () => Navigator.of(context).pop(),
+                            onTap: () {
+                              // Возвращаемся к главному меню, минуя все промежуточные экраны
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            },
                             child: const Padding(
                               padding: EdgeInsets.only(top: 10, bottom: 10, right: 10),
                               child: SvgIcon(
@@ -286,7 +292,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const SignUpPage(),
+            builder: (context) => SignUpPage(authService: widget.authService),
           ),
         );
       },
@@ -338,16 +344,19 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = false;
       });
 
-      // Имитируем успешный логин
+      // Авторизуем пользователя
+      widget.authService.login(_usernameController.text);
+
+      // Показываем сообщение об успехе
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Добро пожаровать, ${_usernameController.text}!'),
+          content: Text('Добро пожаловать, ${_usernameController.text}!'),
           backgroundColor: const Color(0xFF388E3C),
         ),
       );
 
-      // Возвращаемся на главную страницу
-      Navigator.of(context).pop();
+      // Возвращаемся к главному меню
+      Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
 }

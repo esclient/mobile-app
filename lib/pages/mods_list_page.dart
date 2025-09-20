@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../model/mod_item.dart';
 import '../services/mods_service.dart';
+import '../services/auth_service.dart';
 import '../widgets/mod_card.dart';
 import '../components/interactive_widgets.dart';
 import 'login_page.dart';
+import 'profile_page.dart';
 
 class ModsListPage extends StatefulWidget {
   final ModsService modsService;
+  final AuthService authService;
   
-  const ModsListPage({super.key, required this.modsService});
+  const ModsListPage({super.key, required this.modsService, required this.authService});
 
   @override
   State<ModsListPage> createState() => _ModsListPageState();
@@ -468,7 +471,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
 
   Widget _buildBottomNavBar() {
     return Container(
-      height: 80, // Увеличил высоту
+      height: 80,
       decoration: const BoxDecoration(
         color: Color(0xFF1F2937),
         border: Border(
@@ -504,27 +507,24 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
               iconPath: 'lib/icons/main/Profile.svg',
               isActive: false,
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Профиль пока не реализован'),
-                    duration: Duration(seconds: 2),
-                    backgroundColor: Color(0xFF388E3C),
-                  ),
-                );
-              },
-            ),
-            // Временная кнопка для тестирования логина
-            BottomNavItem(
-              label: 'Логин',
-              iconPath: 'lib/icons/ImagePreview.svg',
-              isActive: false,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
-                  ),
-                );
+                // Проверяем, авторизован ли пользователь
+                if (widget.authService.isLoggedIn) {
+                  // Показываем страницу профиля
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProfilePage(authService: widget.authService),
+                    ),
+                  );
+                } else {
+                  // Показываем страницу логина
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginPage(authService: widget.authService),
+                    ),
+                  );
+                }
               },
             ),
           ],

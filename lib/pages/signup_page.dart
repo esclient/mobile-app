@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../components/interactive_widgets.dart';
+import '../services/auth_service.dart';
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+  final AuthService authService;
+  
+  const SignUpPage({super.key, required this.authService});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -44,7 +47,10 @@ class _SignUpPageState extends State<SignUpPage> {
               width: double.infinity,
               padding: const EdgeInsets.only(left: 16, top: 10, bottom: 10),
               child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () {
+                  // Возвращаемся к главному меню, минуя все промежуточные экраны
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
                 child: const Align(
                   alignment: Alignment.centerLeft,
                   child: SvgIcon(
@@ -311,19 +317,20 @@ class _SignUpPageState extends State<SignUpPage> {
         _isLoading = false;
       });
 
-      // Имитируем успешную регистрацию
+      // Регистрируем пользователя
+      widget.authService.signup(_emailController.text);
+
+      // Показываем сообщение об успехе
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Регистрация успешна! Проверьте почту ${_emailController.text}',
-          ),
+          content: Text('Регистрация успешна! Добро пожаловать!'),
           backgroundColor: const Color(0xFF388E3C),
           duration: const Duration(seconds: 3),
         ),
       );
 
-      // Возвращаемся на страницу логина
-      Navigator.of(context).pop();
+      // Возвращаемся к главному меню
+      Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
 }

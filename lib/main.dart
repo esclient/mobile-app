@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'services/graphql_client.dart';
 import 'services/comments.dart';
 import 'services/mods_service.dart';
+import 'services/auth_service.dart';
 import 'model/comments.dart';
 import 'pages/mods_list_page.dart';
 import 'utils/app_theme.dart';
@@ -22,11 +23,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final commentService = CommentService(client);
     final modsService = ModsService(client);
+    final authService = AuthService(); // Создаём экземпляр AuthService
     
     return MaterialApp(
       title: AppStrings.appTitle,
       theme: AppTheme.darkTheme,
-      home: ModsListPage(modsService: modsService),
+      home: ModsListPage(
+        modsService: modsService, 
+        authService: authService,
+      ),
       routes: {
         AppRoutes.comments: (context) => Scaffold(
           appBar: AppBar(title: const Text(AppStrings.navComments)),
