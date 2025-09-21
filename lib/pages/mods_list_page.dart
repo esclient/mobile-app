@@ -3,9 +3,10 @@ import '../model/mod_item.dart';
 import '../services/mods_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/mod_card.dart';
-import '../components/interactive_widgets.dart';
-import 'login_page.dart';
-import 'profile_page.dart';
+import '../components/interactive_widgets.dart'; // Keep for PeriodButton, SvgIcon, StarRating, InteractiveTag
+// Removed unused import 'login_page.dart';
+import '../components/app_bottom_nav_bar.dart';
+import '../components/app_header.dart'; // Added import for AppHeader
 
 class ModsListPage extends StatefulWidget {
   final ModsService modsService;
@@ -59,7 +60,8 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Ошибка загрузки модов: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFF388E3C),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -96,6 +98,13 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         setState(() {
           isLoading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка поиска модов: $e'), // Added SnackBar for search error
+            backgroundColor: const Color(0xFF388E3C),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     }
   }
@@ -104,62 +113,50 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2937),
+      appBar: AppHeader(
+        showActualSearchBar: true,
+        searchQuery: searchQuery.isNotEmpty ? searchQuery : null,
+        onSearchSubmitted: _searchMods,
+        onFilterPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Фильтры пока не реализованы'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Color(0xFF388E3C),
+            ),
+          );
+        },
+        onSettingsPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Настройки пока не реализованы'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Color(0xFF388E3C),
+            ),
+          );
+        },
+        onNotificationPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Уведомления пока не реализованы'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Color(0xFF388E3C),
+            ),
+          );
+        },
+      ),
       body: SafeArea(
+        // The old header Container was part of the Column and has been removed.
         child: Column(
           children: [
-            // Header with search bar
-            Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF1F2937),
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFF374151), width: 1),
-                ),
-              ),
-              child: InteractiveSearchBar(
-                placeholder: 'Поиск модов',
-                searchQuery: searchQuery.isNotEmpty ? searchQuery : null,
-                onSearchPressed: _searchMods,
-                onFilterPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Фильтры пока не реализованы'),
-                      duration: Duration(seconds: 2),
-                      backgroundColor: Color(0xFF388E3C),
-                    ),
-                  );
-                },
-                onSettingsPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Настройки пока не реализованы'),
-                      duration: Duration(seconds: 2),
-                      backgroundColor: Color(0xFF388E3C),
-                    ),
-                  );
-                },
-                onNotificationPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Уведомления пока не реализованы'),
-                      duration: Duration(seconds: 2),
-                      backgroundColor: Color(0xFF388E3C),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            // Period selector
             _buildPeriodSelector(),
-
-            // Main content - Mods list
             Expanded(
               child: _buildModsList(),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: AppBottomNavBar(activeIndex: 0, authService: widget.authService), 
     );
   }
 
@@ -245,8 +242,8 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                           children: [
                             SvgIcon(
                               assetPath: searchQuery.isNotEmpty 
-                                  ? 'lib/icons/main/Search.svg'
-                                  : 'lib/icons/main/Home.svg',
+                                  ? 'lib/icons/header/search.svg'
+                                  : 'lib/icons/footer/home.svg',
                               size: 64,
                               color: const Color(0xFF9CA3AF),
                             ),
@@ -453,6 +450,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                               SnackBar(
                                 content: Text('Скачивание "${mod.title}" началось'),
                                 backgroundColor: const Color(0xFF388E3C),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           },
@@ -466,76 +464,6 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
           ),
         );
       },
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return Container(
-      height: 80,
-      decoration: const BoxDecoration(
-        color: Color(0xFF1F2937),
-        border: Border(
-          top: BorderSide(color: Color(0xFF374151), width: 1),
-        ),
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            BottomNavItem(
-              label: 'Главная',
-              iconPath: 'lib/icons/main/Home.svg',
-              isActive: true,
-              onPressed: () {},
-            ),
-            BottomNavItem(
-              label: 'Закладки',
-              iconPath: 'lib/icons/main/Favorite.svg',
-              isActive: false,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Закладки пока не реализованы'),
-                    duration: Duration(seconds: 2),
-                    backgroundColor: Color(0xFF388E3C),
-                  ),
-                );
-              },
-            ),
-            GestureDetector(
-              onLongPress: () {
-                // При долгом нажатии показываем новый улучшенный экран профиля
-                Navigator.pushNamed(context, '/improved_profile');
-              },
-              child: BottomNavItem(
-                label: 'Профиль',
-                iconPath: 'lib/icons/main/Profile.svg',
-                isActive: false,
-                onPressed: () {
-                  // Проверяем, авторизован ли пользователь
-                  if (widget.authService.isLoggedIn) {
-                    // Показываем страницу профиля
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfilePage(authService: widget.authService),
-                      ),
-                    );
-                  } else {
-                    // Показываем страницу логина
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(authService: widget.authService),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

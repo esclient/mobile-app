@@ -5,9 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="baee2879-b8a3-4341-8e55-d032290143b7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/lib/components/app_bottom_nav_bar.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/components/app_header.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/components/interactive_widgets.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/components/interactive_widgets.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/ImagePreview.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/login/HideShowToggle.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/main/Favorite.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/main/Filter.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/main/Gear.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/main/Home.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/main/Notification.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/main/Profile.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/icons/main/Search.svg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/pages/improved_profile_screen.dart" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/pages/mods_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pages/mods_list_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/pages/profile_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pages/profile_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,6 +32,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
+  <component name="DartProblemsView" group-by-severity="false" />
   <component name="FormatOnSaveOptions">
     <option name="myRunOnSave" value="true" />
   </component>
@@ -54,7 +70,7 @@
     "project.structure.last.edited": "Problems",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "dart.settings",
+    "settings.editor.selected.configurable": "com.android.studio.ml.bot.mainConfigurable",
     "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>

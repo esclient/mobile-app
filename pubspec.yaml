@@ -63,8 +63,10 @@ flutter:
   assets:
     - lib/icons/main/
     - lib/icons/login/
+    - lib/icons/header/
+    - lib/icons/footer/
     - lib/icons/logo.svg
-    - lib/icons/ImagePreview.svg
+    - lib/icons/image_preview.svg
     - lib/icons/Return.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see

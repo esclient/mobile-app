@@ -6,7 +6,7 @@ import 'services/mods_service.dart';
 import 'services/auth_service.dart';
 import 'model/comments.dart';
 import 'pages/mods_list_page.dart';
-import 'pages/improved_profile_screen.dart';
+import 'pages/profile_page.dart'; // Changed from improved_profile_screen.dart
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';
 
@@ -24,21 +24,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final commentService = CommentService(client);
     final modsService = ModsService(client);
-    final authService = AuthService(); // Создаём экземпляр AuthService
+    final authService = AuthService(); // AuthService instance is created here
     
     return MaterialApp(
       title: AppStrings.appTitle,
       theme: AppTheme.darkTheme,
       home: ModsListPage(
         modsService: modsService, 
-        authService: authService,
+        authService: authService, // and passed to ModsListPage
       ),
       routes: {
         AppRoutes.comments: (context) => Scaffold(
           appBar: AppBar(title: const Text(AppStrings.navComments)),
           body: CommentsList(commentService: commentService),
         ),
-        '/improved_profile': (context) => const ImprovedProfileScreen(),
+        // Route updated to use AppRoutes.profile
+        AppRoutes.profile: (context) => ProfilePage(authService: authService), 
       },
       debugShowCheckedModeBanner: false,
     );
