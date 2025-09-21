@@ -6,6 +6,7 @@ import 'services/mods_service.dart';
 import 'services/auth_service.dart';
 import 'model/comments.dart';
 import 'pages/mods_list_page.dart';
+import 'pages/improved_profile_screen.dart';
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';
 
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
           appBar: AppBar(title: const Text(AppStrings.navComments)),
           body: CommentsList(commentService: commentService),
         ),
+        '/improved_profile': (context) => const ImprovedProfileScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

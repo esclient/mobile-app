@@ -502,30 +502,36 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                 );
               },
             ),
-            BottomNavItem(
-              label: 'Профиль',
-              iconPath: 'lib/icons/main/Profile.svg',
-              isActive: false,
-              onPressed: () {
-                // Проверяем, авторизован ли пользователь
-                if (widget.authService.isLoggedIn) {
-                  // Показываем страницу профиля
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfilePage(authService: widget.authService),
-                    ),
-                  );
-                } else {
-                  // Показываем страницу логина
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoginPage(authService: widget.authService),
-                    ),
-                  );
-                }
+            GestureDetector(
+              onLongPress: () {
+                // При долгом нажатии показываем новый улучшенный экран профиля
+                Navigator.pushNamed(context, '/improved_profile');
               },
+              child: BottomNavItem(
+                label: 'Профиль',
+                iconPath: 'lib/icons/main/Profile.svg',
+                isActive: false,
+                onPressed: () {
+                  // Проверяем, авторизован ли пользователь
+                  if (widget.authService.isLoggedIn) {
+                    // Показываем страницу профиля
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfilePage(authService: widget.authService),
+                      ),
+                    );
+                  } else {
+                    // Показываем страницу логина
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(authService: widget.authService),
+                      ),
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),
