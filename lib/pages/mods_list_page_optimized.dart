@@ -169,7 +169,7 @@ class _ModsListPageOptimizedState extends State<ModsListPageOptimized>
             builder: (context, modsProvider, child) {
               return Text(
                 modsProvider.isSearchMode 
-                    ? 'Результаты поиска \"${modsProvider.currentSearchQuery}\"'
+                    ? 'Результаты поиска "${modsProvider.currentSearchQuery}"'
                     : 'Список модов',
                 style: const TextStyle(
                   color: Colors.white,
@@ -310,7 +310,7 @@ class _ModsListPageOptimizedState extends State<ModsListPageOptimized>
           const SizedBox(height: 16),
           Text(
             isSearchMode 
-                ? 'По запросу \"$searchQuery\" ничего не найдено'
+                ? 'По запросу "$searchQuery" ничего не найдено'
                 : 'Моды не найдены',
             style: const TextStyle(
               color: Color(0xFF9CA3AF),

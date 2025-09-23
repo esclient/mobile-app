@@ -1,5 +1,4 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 /// Optimized GraphQL client with better caching and error handling
 Future<GraphQLClient> initGraphQLClient() async {
@@ -110,7 +109,7 @@ class GraphQLHelper {
   
   /// Clear cache for a specific query
   Future<void> clearCache(String queryId) async {
-    await client.cache.store.reset();
+    client.cache.store.reset();
   }
   
   /// Prefetch data for better performance

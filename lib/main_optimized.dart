@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'services/service_locator.dart';
 import 'services/comments.dart';
 import 'model/comments.dart';
-import 'pages/mods_list_page.dart';
+import 'pages/mods_list_page_optimized.dart';
 import 'pages/profile_page.dart';
+import 'providers/mods_provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Hive for caching
+  await Hive.initFlutter();
   
   // Initialize services once at startup
   final serviceLocator = ServiceLocator();
@@ -29,15 +33,22 @@ class MyApp extends StatelessWidget {
     // Use MultiProvider for better state management
     return MultiProvider(
       providers: [
+        // Service providers
         Provider<ServiceLocator>.value(value: serviceLocator),
-        Provider(create: (_) => serviceLocator.modsService),
-        Provider(create: (_) => serviceLocator.authService),
-        Provider(create: (_) => serviceLocator.commentService),
+        Provider.value(value: serviceLocator.modsService),
+        Provider.value(value: serviceLocator.authService),
+        Provider.value(value: serviceLocator.commentService),
+        
+        // State providers
+        ChangeNotifierProvider<ModsProvider>(
+          create: (context) => ModsProvider(serviceLocator.modsService),
+          lazy: false, // Initialize immediately for better performance
+        ),
       ],
       child: MaterialApp(
         title: AppStrings.appTitle,
         theme: AppTheme.darkTheme,
-        home: const ModsListPage(),
+        home: const ModsListPageOptimized(),
         routes: {
           AppRoutes.comments: (context) => Scaffold(
             appBar: AppBar(title: const Text(AppStrings.navComments)),
@@ -50,6 +61,15 @@ class MyApp extends StatelessWidget {
           ),
         },
         debugShowCheckedModeBanner: false,
+        
+        // Performance optimizations
+        builder: (context, child) {
+          // Disable glow effect on Android for better performance
+          return ScrollConfiguration(
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
+            child: child!,
+          );
+        },
       ),
     );
   }
@@ -89,7 +109,11 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
       future: _future,
       builder: (ctx, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF388E3C),
+            ),
+          );
         } else if (snap.hasError) {
           return _buildErrorWidget(snap.error.toString());
         }
@@ -106,21 +130,24 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
               _loadComments();
             });
           },
+          color: const Color(0xFF388E3C),
+          backgroundColor: const Color(0xFF374151),
           child: ListView.builder(
             padding: const EdgeInsets.all(AppSizes.paddingMedium),
             itemCount: comments.length,
-            // Add item extent for better performance with fixed-height items
+            // Optimizations for better performance
+            itemExtent: null, // Let items size themselves
+            cacheExtent: 500,
+            addAutomaticKeepAlives: false,
+            addRepaintBoundaries: true,
             itemBuilder: (context, index) {
-              if (index > 0) {
-                // Add separator
-                return Column(
-                  children: [
-                    const SizedBox(height: AppSizes.spacing),
-                    _buildCommentCard(comments[index]),
-                  ],
-                );
-              }
-              return _buildCommentCard(comments[index]);
+              final comment = comments[index];
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index < comments.length - 1 ? AppSizes.spacing : 0,
+                ),
+                child: _buildCommentCard(comment),
+              );
             },
           ),
         );
@@ -204,7 +231,7 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
           Text(
             'Ошибка: $error',
             style: const TextStyle(
-              color: Color(0xFFD1D5DB),
+              color: Color(0xFF9CA3AF),
               fontSize: 16,
             ),
             textAlign: TextAlign.center,
@@ -241,7 +268,7 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
           Text(
             'Комментарии не найдены',
             style: TextStyle(
-              color: Color(0xFFD1D5DB),
+              color: Color(0xFF9CA3AF),
               fontSize: 16,
             ),
           ),

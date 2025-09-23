@@ -1,8 +1,111 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:async';
 
-// Custom SVG Icon Widget with better error handling
+/// Optimized search input with debouncing
+class OptimizedSearchInput extends StatefulWidget {
+  final String? initialValue;
+  final ValueChanged<String> onSubmitted;
+  final Duration debounceDelay;
+  
+  const OptimizedSearchInput({
+    super.key,
+    this.initialValue,
+    required this.onSubmitted,
+    this.debounceDelay = const Duration(milliseconds: 500),
+  });
+
+  @override
+  State<OptimizedSearchInput> createState() => _OptimizedSearchInputState();
+}
+
+class _OptimizedSearchInputState extends State<OptimizedSearchInput> {
+  late TextEditingController _controller;
+  Timer? _debounceTimer;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue ?? '');
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(widget.debounceDelay, () {
+      widget.onSubmitted(value);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: const Color(0xFF374151),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF4B5563),
+          width: 1,
+        ),
+      ),
+      child: TextField(
+        controller: _controller,
+        onChanged: _onTextChanged,
+        onSubmitted: widget.onSubmitted,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w400,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Поиск модов...',
+          hintStyle: const TextStyle(
+            color: Color(0xFF9CA3AF),
+            fontSize: 16,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: const Padding(
+            padding: EdgeInsets.all(12),
+            child: SvgIcon(
+              assetPath: 'lib/icons/header/search.svg',
+              size: 20,
+              color: Color(0xFF9CA3AF),
+            ),
+          ),
+          suffixIcon: _controller.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.clear,
+                    color: Color(0xFF9CA3AF),
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    _controller.clear();
+                    widget.onSubmitted('');
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Optimized SVG icon with caching
 class SvgIcon extends StatelessWidget {
   final String assetPath;
   final double size;
@@ -11,7 +114,7 @@ class SvgIcon extends StatelessWidget {
   const SvgIcon({
     super.key,
     required this.assetPath,
-    this.size = 24,
+    required this.size,
     this.color,
   });
 
@@ -24,255 +127,58 @@ class SvgIcon extends StatelessWidget {
       colorFilter: color != null 
           ? ColorFilter.mode(color!, BlendMode.srcIn)
           : null,
-      placeholderBuilder: (BuildContext context) {
-        return Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: color?.withValues(alpha: 0.3) ?? Colors.grey.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Icon(
-            Icons.image_not_supported,
-            size: size * 0.6,
-            color: color ?? Colors.grey,
-          ),
-        );
-      },
-    );
-  }
-}
-
-// Optimized Search Bar with debouncing
-class OptimizedSearchBar extends StatefulWidget {
-  final String placeholder;
-  final ValueChanged<String>? onSearchSubmitted;
-  final ValueChanged<String>? onSearchChanged;
-  final VoidCallback? onFilterPressed;
-  final String? initialValue;
-  final Duration debounceDuration;
-
-  const OptimizedSearchBar({
-    super.key,
-    this.placeholder = 'Поиск модов',
-    this.onSearchSubmitted,
-    this.onSearchChanged,
-    this.onFilterPressed,
-    this.initialValue,
-    this.debounceDuration = const Duration(milliseconds: 500),
-  });
-
-  @override
-  State<OptimizedSearchBar> createState() => _OptimizedSearchBarState();
-}
-
-class _OptimizedSearchBarState extends State<OptimizedSearchBar> {
-  bool _isSearchFocused = false;
-  late TextEditingController _searchController;
-  late FocusNode _searchFocusNode;
-  Timer? _debounceTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController(text: widget.initialValue ?? '');
-    _searchFocusNode = FocusNode();
-    _searchFocusNode.addListener(_onFocusChange);
-  }
-
-  @override
-  void didUpdateWidget(OptimizedSearchBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.initialValue != oldWidget.initialValue) {
-      _searchController.text = widget.initialValue ?? '';
-    }
-  }
-
-  @override
-  void dispose() {
-    _debounceTimer?.cancel();
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  void _onFocusChange() {
-    if (mounted) {
-      setState(() {
-        _isSearchFocused = _searchFocusNode.hasFocus;
-      });
-    }
-  }
-
-  void _onTextChanged(String value) {
-    // Cancel previous timer
-    _debounceTimer?.cancel();
-    
-    // Start new timer for debouncing
-    _debounceTimer = Timer(widget.debounceDuration, () {
-      if (widget.onSearchChanged != null) {
-        widget.onSearchChanged!(value);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: SizedBox(
-            height: 50,
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w400,
-              ),
-              decoration: InputDecoration(
-                hintText: widget.placeholder,
-                hintStyle: const TextStyle(
-                  color: Color(0xBF9B9B9B),
-                  fontSize: 16,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w400,
-                ),
-                prefixIcon: const Padding(
-                  padding: EdgeInsets.all(13.0),
-                  child: SvgIcon(
-                    assetPath: 'lib/icons/header/search.svg',
-                    size: 20,
-                    color: Color(0xBF9B9B9B),
-                  ),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        onPressed: () {
-                          _searchController.clear();
-                          _onTextChanged('');
-                          if (widget.onSearchSubmitted != null) {
-                            widget.onSearchSubmitted!('');
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.clear,
-                          color: Color(0xBF9B9B9B),
-                          size: 20,
-                        ),
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF374151),
-                    width: 1,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF374151),
-                    width: 1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF388E3C),
-                    width: 1,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                fillColor: Colors.transparent,
-                filled: true,
-              ),
-              onSubmitted: widget.onSearchSubmitted,
-              onChanged: _onTextChanged,
-            ),
-          ),
-        ),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: _isSearchFocused ? 53 : 0, 
-          child: _isSearchFocused
-              ? Row(
-                  children: [
-                    const SizedBox(width: 7),
-                    _buildActionButton(
-                      onPressed: widget.onFilterPressed,
-                      icon: 'lib/icons/header/filter.svg',
-                    ),
-                  ],
-                )
-              : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButton({
-    required VoidCallback? onPressed,
-    required String icon,
-  }) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF374151),
-            width: 1,
-          ),
-        ),
-        child: Center(
-          child: SvgIcon(
-            assetPath: icon,
-            size: 20,
-            color: const Color(0xBF9B9B9B),
-          ),
+      // Enable caching for better performance
+      placeholderBuilder: (context) => SizedBox(
+        width: size,
+        height: size,
+        child: const CircularProgressIndicator(
+          strokeWidth: 1,
+          color: Color(0xFF9CA3AF),
         ),
       ),
     );
   }
 }
 
-// Legacy InteractiveSearchBar for backward compatibility
-class InteractiveSearchBar extends StatelessWidget {
-  final String placeholder;
-  final ValueChanged<String>? onSearchPressed;
-  final VoidCallback? onFilterPressed;
-  final String? searchQuery;
+/// Optimized star rating widget
+class StarRating extends StatelessWidget {
+  final double rating;
+  final double starSize;
+  final int maxStars;
+  final Color activeColor;
+  final Color inactiveColor;
 
-  const InteractiveSearchBar({
+  const StarRating({
     super.key,
-    this.placeholder = 'Поиск модов',
-    this.onSearchPressed,
-    this.onFilterPressed,
-    this.searchQuery,
+    required this.rating,
+    this.starSize = 16,
+    this.maxStars = 5,
+    this.activeColor = const Color(0xFFF59E0B),
+    this.inactiveColor = const Color(0xFF6B7280),
   });
 
   @override
   Widget build(BuildContext context) {
-    return OptimizedSearchBar(
-      placeholder: placeholder,
-      onSearchSubmitted: onSearchPressed,
-      onSearchChanged: onSearchPressed,
-      onFilterPressed: onFilterPressed,
-      initialValue: searchQuery,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(maxStars, (index) {
+        final starRating = index + 1;
+        return Icon(
+          starRating <= rating.floor()
+              ? Icons.star
+              : starRating <= rating
+                  ? Icons.star_half
+                  : Icons.star_border,
+          size: starSize,
+          color: starRating <= rating ? activeColor : inactiveColor,
+        );
+      }),
     );
   }
 }
 
-// Optimized Period Button with const constructors where possible
-class PeriodButton extends StatefulWidget {
+/// Optimized period button with const constructor
+class PeriodButton extends StatelessWidget {
   final String text;
   final bool isSelected;
   final VoidCallback? onPressed;
@@ -285,45 +191,37 @@ class PeriodButton extends StatefulWidget {
   });
 
   @override
-  State<PeriodButton> createState() => _PeriodButtonState();
-}
-
-class _PeriodButtonState extends State<PeriodButton> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          height: 43,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: widget.isSelected ? const Color(0xFF388E3C) : null,
-            border: Border.all(
-              color: widget.isSelected 
-                  ? const Color(0xFF388E3C)
-                  : _isHovered
-                      ? const Color(0xFF388E3C)
-                      : const Color(0xFF374151),
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(14),
+    return SizedBox(
+      height: 54,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isSelected 
+              ? const Color(0xFF388E3C) 
+              : const Color(0xFF374151),
+          foregroundColor: Colors.white,
+          side: BorderSide(
+            color: isSelected 
+                ? const Color(0xFF4ADE80) 
+                : const Color(0xFF6B7280),
+            width: 1,
           ),
-          child: Center(
-            child: Text(
-              widget.text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(27),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          elevation: 0,
+          shadowColor: Colors.transparent,
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontFamily: 'Roboto',
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            height: 1.50,
           ),
         ),
       ),
@@ -331,91 +229,53 @@ class _PeriodButtonState extends State<PeriodButton> {
   }
 }
 
-// Optimized Star Rating with const constructors
-class StarRating extends StatelessWidget {
-  final double rating;
-  final int maxStars;
-  final double starSize;
-
-  const StarRating({
-    super.key,
-    required this.rating,
-    this.maxStars = 5,
-    this.starSize = 10,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(maxStars, (index) {
-        return Padding(
-          padding: EdgeInsets.only(right: index < maxStars - 1 ? 2 : 0),
-          child: SvgIcon(
-            assetPath: 'lib/icons/main/star.svg',
-            size: starSize,
-            color: index < rating.floor() 
-                ? const Color(0xFFF59E0B) 
-                : const Color(0xFF374151),
-          ),
-        );
-      }),
-    );
-  }
-}
-
-// Optimized Interactive Tag
-class InteractiveTag extends StatefulWidget {
+/// Optimized interactive tag with const constructor
+class InteractiveTag extends StatelessWidget {
   final String text;
-  final bool isSelected;
   final VoidCallback? onPressed;
+  final bool isSelected;
 
   const InteractiveTag({
     super.key,
     required this.text,
-    this.isSelected = false,
     this.onPressed,
+    this.isSelected = false,
   });
 
   @override
-  State<InteractiveTag> createState() => _InteractiveTagState();
-}
-
-class _InteractiveTagState extends State<InteractiveTag> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-          decoration: BoxDecoration(
-            color: widget.isSelected || _isHovered 
-                ? const Color(0xFF388E3C) 
-                : const Color(0xFF374151),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: widget.isSelected || _isHovered 
-                  ? const Color(0xFF388E3C) 
-                  : const Color(0xFF374151),
-              width: 1,
-            ),
+    return SizedBox(
+      height: 26,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isSelected 
+              ? const Color(0xFF388E3C) 
+              : const Color(0xFF4B5563),
+          foregroundColor: Colors.white,
+          side: BorderSide(
+            color: isSelected 
+                ? const Color(0xFF4ADE80) 
+                : const Color(0xFF6B7280),
+            width: 1,
           ),
-          child: Text(
-            widget.text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFFD1D5DB),
-              fontSize: 10,
-              fontFamily: 'Roboto',
-              fontWeight: FontWeight.w500,
-              height: 1.33,
-            ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(13),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w500,
+            height: 1.17,
           ),
         ),
       ),
@@ -423,71 +283,229 @@ class _InteractiveTagState extends State<InteractiveTag> {
   }
 }
 
-// Optimized Bottom Navigation Item
-class BottomNavItem extends StatefulWidget {
-  final String label;
-  final String iconPath;
-  final bool isActive;
-  final VoidCallback? onPressed;
-
-  const BottomNavItem({
+/// Optimized loading indicator
+class OptimizedLoadingIndicator extends StatelessWidget {
+  final String? message;
+  final double size;
+  
+  const OptimizedLoadingIndicator({
     super.key,
-    required this.label,
-    required this.iconPath,
-    this.isActive = false,
-    this.onPressed,
+    this.message,
+    this.size = 40,
   });
 
   @override
-  State<BottomNavItem> createState() => _BottomNavItemState();
-}
-
-class _BottomNavItemState extends State<BottomNavItem> {
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final color = widget.isActive 
-        ? const Color(0xFF388E3C) 
-        : _isPressed
-            ? const Color(0xFF388E3C)
-            : const Color(0xFF9CA3AF);
-
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onPressed,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgIcon(
-              assetPath: widget.iconPath,
-              size: 20,
-              color: color,
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: size,
+            height: size,
+            child: const CircularProgressIndicator(
+              color: Color(0xFF388E3C),
+              strokeWidth: 3,
             ),
-            const SizedBox(height: 1),
-            Flexible(
-              child: Text(
-                widget.label,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 10,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w500,
-                  height: 1.0,
-                ),
+          ),
+          if (message != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              message!,
+              style: const TextStyle(
+                color: Color(0xFF9CA3AF),
+                fontSize: 14,
               ),
             ),
           ],
-        ),
+        ],
       ),
+    );
+  }
+}
+
+/// Optimized error widget
+class OptimizedErrorWidget extends StatelessWidget {
+  final String message;
+  final VoidCallback? onRetry;
+  final String retryButtonText;
+  
+  const OptimizedErrorWidget({
+    super.key,
+    required this.message,
+    this.onRetry,
+    this.retryButtonText = 'Попробовать снова',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Color(0xFF9CA3AF),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF9CA3AF),
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 16),
+            PeriodButton(
+              text: retryButtonText,
+              onPressed: onRetry,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Optimized empty state widget
+class OptimizedEmptyWidget extends StatelessWidget {
+  final String message;
+  final String iconPath;
+  final VoidCallback? onAction;
+  final String? actionText;
+  
+  const OptimizedEmptyWidget({
+    super.key,
+    required this.message,
+    this.iconPath = 'lib/icons/footer/home.svg',
+    this.onAction,
+    this.actionText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SvgIcon(
+            assetPath: iconPath,
+            size: 64,
+            color: const Color(0xFF9CA3AF),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF9CA3AF),
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (onAction != null && actionText != null) ...[
+            const SizedBox(height: 16),
+            PeriodButton(
+              text: actionText!,
+              onPressed: onAction,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Optimized shimmer loading effect for better UX
+class ShimmerLoading extends StatefulWidget {
+  final Widget child;
+  final bool isLoading;
+  
+  const ShimmerLoading({
+    super.key,
+    required this.child,
+    required this.isLoading,
+  });
+
+  @override
+  State<ShimmerLoading> createState() => _ShimmerLoadingState();
+}
+
+class _ShimmerLoadingState extends State<ShimmerLoading>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutSine,
+    ));
+
+    if (widget.isLoading) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(ShimmerLoading oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isLoading != oldWidget.isLoading) {
+      if (widget.isLoading) {
+        _controller.repeat();
+      } else {
+        _controller.stop();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isLoading) {
+      return widget.child;
+    }
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [
+                _animation.value - 0.3,
+                _animation.value,
+                _animation.value + 0.3,
+              ],
+              colors: const [
+                Color(0xFF374151),
+                Color(0xFF4B5563),
+                Color(0xFF374151),
+              ],
+            ).createShader(bounds);
+          },
+          child: widget.child,
+        );
+      },
     );
   }
 }

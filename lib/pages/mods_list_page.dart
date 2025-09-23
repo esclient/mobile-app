@@ -1,30 +1,41 @@
 import 'package:flutter/material.dart';
-import '../model/mod_item.dart';
-import '../services/mods_service.dart';
-import '../services/auth_service.dart';
-import '../widgets/mod_card.dart';
-import '../components/interactive_widgets.dart'; // Keep for PeriodButton, SvgIcon, StarRating, InteractiveTag
+
 // Removed unused import 'login_page.dart';
 import '../components/app_bottom_nav_bar.dart';
 import '../components/app_header.dart'; // Added import for AppHeader
+import '../components/interactive_widgets.dart'; // Keep for PeriodButton, SvgIcon, StarRating, InteractiveTag
+import '../model/mod_item.dart';
+import '../services/auth_service.dart';
+import '../services/mods_service.dart';
+import '../widgets/mod_card.dart';
 
 class ModsListPage extends StatefulWidget {
   final ModsService modsService;
   final AuthService authService;
-  
-  const ModsListPage({super.key, required this.modsService, required this.authService});
+
+  const ModsListPage({
+    super.key,
+    required this.modsService,
+    required this.authService,
+  });
 
   @override
   State<ModsListPage> createState() => _ModsListPageState();
 }
 
-class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMixin {
+class _ModsListPageState extends State<ModsListPage>
+    with TickerProviderStateMixin {
   int selectedPeriodIndex = 0;
   List<ModItem> mods = [];
   bool isLoading = true;
   String searchQuery = '';
-  
-  final List<String> periods = ['За всё время', 'За месяц', 'За неделю', 'Недавние'];
+
+  final List<String> periods = [
+    'За всё время',
+    'За месяц',
+    'За неделю',
+    'Недавние',
+  ];
   final List<String> periodKeys = ['all_time', 'month', 'week', 'recent'];
 
   @override
@@ -35,7 +46,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
 
   Future<void> _loadMods() async {
     if (!mounted) return;
-    
+
     setState(() {
       isLoading = true;
     });
@@ -44,7 +55,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
       final loadedMods = await widget.modsService.fetchMods(
         period: periodKeys[selectedPeriodIndex],
       );
-      
+
       if (mounted) {
         setState(() {
           mods = loadedMods;
@@ -56,7 +67,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         setState(() {
           isLoading = false;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Ошибка загрузки модов: $e'),
@@ -78,7 +89,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
     }
 
     if (!mounted) return;
-    
+
     setState(() {
       isLoading = true;
       searchQuery = query;
@@ -86,7 +97,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
 
     try {
       final searchResults = await widget.modsService.searchMods(query);
-      
+
       if (mounted) {
         setState(() {
           mods = searchResults;
@@ -100,7 +111,8 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка поиска модов: $e'), // Added SnackBar for search error
+            content: Text('Ошибка поиска модов: $e'),
+            // Added SnackBar for search error
             backgroundColor: const Color(0xFF388E3C),
             duration: const Duration(seconds: 2),
           ),
@@ -150,13 +162,14 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         child: Column(
           children: [
             _buildPeriodSelector(),
-            Expanded(
-              child: _buildModsList(),
-            ),
+            Expanded(child: _buildModsList()),
           ],
         ),
       ),
-      bottomNavigationBar: AppBottomNavBar(activeIndex: 0, authService: widget.authService), 
+      bottomNavigationBar: AppBottomNavBar(
+        activeIndex: 0,
+        authService: widget.authService,
+      ),
     );
   }
 
@@ -216,7 +229,7 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            searchQuery.isNotEmpty 
+            searchQuery.isNotEmpty
                 ? 'Результаты поиска "$searchQuery"'
                 : 'Список модов',
             style: const TextStyle(
@@ -231,66 +244,65 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
           Expanded(
             child: isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF388E3C),
-                    ),
+                    child: CircularProgressIndicator(color: Color(0xFF388E3C)),
                   )
                 : mods.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SvgIcon(
-                              assetPath: searchQuery.isNotEmpty 
-                                  ? 'lib/icons/header/search.svg'
-                                  : 'lib/icons/footer/home.svg',
-                              size: 64,
-                              color: const Color(0xFF9CA3AF),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              searchQuery.isNotEmpty 
-                                  ? 'По запросу "$searchQuery" ничего не найдено'
-                                  : 'Моды не найдены',
-                              style: const TextStyle(
-                                color: Color(0xFF9CA3AF),
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            if (searchQuery.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              PeriodButton(
-                                text: 'Показать все моды',
-                                onPressed: () {
-                                  setState(() {
-                                    searchQuery = '';
-                                  });
-                                  _loadMods();
-                                },
-                              ),
-                            ],
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgIcon(
+                          assetPath: searchQuery.isNotEmpty
+                              ? 'lib/icons/header/search.svg'
+                              : 'lib/icons/footer/home.svg',
+                          size: 64,
+                          color: const Color(0xFF9CA3AF),
                         ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadMods,
-                        color: const Color(0xFF388E3C),
-                        backgroundColor: const Color(0xFF374151),
-                        child: ListView.separated(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount: mods.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final mod = mods[index];
-                            return ModCard(
-                              key: ValueKey(mod.id),
-                              mod: mod,
-                              onTap: () => _onModTap(mod),
-                            );
-                          },
+                        const SizedBox(height: 16),
+                        Text(
+                          searchQuery.isNotEmpty
+                              ? 'По запросу "$searchQuery" ничего не найдено'
+                              : 'Моды не найдены',
+                          style: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
+                        if (searchQuery.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          PeriodButton(
+                            text: 'Показать все моды',
+                            onPressed: () {
+                              setState(() {
+                                searchQuery = '';
+                              });
+                              _loadMods();
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadMods,
+                    color: const Color(0xFF388E3C),
+                    backgroundColor: const Color(0xFF374151),
+                    child: ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: mods.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final mod = mods[index];
+                        return ModCard(
+                          key: ValueKey(mod.id),
+                          mod: mod,
+                          onTap: () => _onModTap(mod),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -336,7 +348,9 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
                                 image: const DecorationImage(
-                                  image: AssetImage('lib/icons/main/mod_test_pfp.png'),
+                                  image: AssetImage(
+                                    'lib/icons/main/mod_test_pfp.png',
+                                  ),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -366,7 +380,10 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                                 const SizedBox(height: 5),
                                 Row(
                                   children: [
-                                    StarRating(rating: mod.rating, starSize: 12),
+                                    StarRating(
+                                      rating: mod.rating,
+                                      starSize: 12,
+                                    ),
                                     const SizedBox(width: 5),
                                     Text(
                                       mod.rating.toStringAsFixed(1),
@@ -448,7 +465,9 @@ class _ModsListPageState extends State<ModsListPage> with TickerProviderStateMix
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Скачивание "${mod.title}" началось'),
+                                content: Text(
+                                  'Скачивание "${mod.title}" началось',
+                                ),
                                 backgroundColor: const Color(0xFF388E3C),
                                 duration: const Duration(seconds: 2),
                               ),
