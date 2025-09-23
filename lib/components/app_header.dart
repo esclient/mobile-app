@@ -37,11 +37,39 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       headerContent = Row(
         children: [
           Expanded(
-            child: InteractiveSearchBar(
-              placeholder: 'Поиск модов', // Default placeholder for mods list
-              searchQuery: searchQuery,
-              onSearchPressed: onSearchSubmitted, // Passed from AppHeader param
-              onFilterPressed: onFilterPressed,   // Passed from AppHeader param
+            child: Row(
+              children: [
+                Expanded(
+                  child: OptimizedSearchInput(
+                    initialValue: searchQuery,
+                    onSubmitted: onSearchSubmitted ?? (value) {},
+                  ),
+                ),
+                if (onFilterPressed != null) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 46,
+                    height: 46,
+                    child: GestureDetector(
+                      onTap: onFilterPressed,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFF374151)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: SvgPicture.asset(
+                            'lib/icons/header/filter.svg',
+                            colorFilter: const ColorFilter.mode(Color(0xBF9B9B9B), BlendMode.srcIn),
+                            width: 20,
+                            height: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           // Action buttons rendered by AppHeader itself

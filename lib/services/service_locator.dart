@@ -1,6 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'graphql_client_optimized.dart';
-import 'mods_service_optimized.dart';
+import 'graphql_client.dart';
+import 'mods_service.dart';
 import 'auth_service.dart';
 import 'comments.dart';
 
@@ -12,7 +12,7 @@ class ServiceLocator {
   ServiceLocator._internal();
   
   late final GraphQLClient graphQLClient;
-  late final OptimizedModsService modsService;
+  late final ModsService modsService;
   late final AuthService authService;
   late final CommentService commentService;
   
@@ -25,7 +25,7 @@ class ServiceLocator {
     
     try {
       graphQLClient = await initGraphQLClient();
-      modsService = OptimizedModsService(graphQLClient);
+      modsService = ModsService(graphQLClient);
       authService = AuthService();
       commentService = CommentService(graphQLClient);
       _initialized = true;

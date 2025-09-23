@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../model/mod_item.dart';
-import '../services/mods_service_optimized.dart';
+import '../services/mods_service.dart';
 import 'dart:developer';
 
 /// Provider for managing mods state with optimized data handling
 class ModsProvider extends ChangeNotifier {
-  final OptimizedModsService _modsService;
+  final ModsService _modsService;
   
   ModsProvider(this._modsService) {
     _initializeProvider();

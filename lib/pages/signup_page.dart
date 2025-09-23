@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../components/interactive_widgets.dart';
 import '../services/auth_service.dart';
 
 class SignUpPage extends StatefulWidget {
   final AuthService authService;
-  
+
   const SignUpPage({super.key, required this.authService});
 
   @override
@@ -54,7 +55,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 child: const Align(
                   alignment: Alignment.centerLeft,
                   child: SvgIcon(
-                    assetPath: 'lib/icons/Return.svg',
+                    assetPath: 'lib/icons/return.svg',
                     size: 24,
                     color: Colors.white,
                   ),
@@ -108,13 +109,13 @@ class _SignUpPageState extends State<SignUpPage> {
                                 decoration: BoxDecoration(
                                   border: Border.all(
                                     width: 2,
-                                    color: _receiveUpdates 
+                                    color: _receiveUpdates
                                         ? const Color(0xFF388E3C)
                                         : const Color(0xFF797979),
                                   ),
                                   borderRadius: BorderRadius.circular(6),
-                                  color: _receiveUpdates 
-                                      ? const Color(0xFF388E3C) 
+                                  color: _receiveUpdates
+                                      ? const Color(0xFF388E3C)
                                       : Colors.transparent,
                                 ),
                                 child: _receiveUpdates
@@ -180,7 +181,9 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
 
                         // Add spacing before bottom section
-                        SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.15,
+                        ),
                       ],
                     ),
                   ],
@@ -252,24 +255,15 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF374151),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF374151), width: 1),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF374151),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF374151), width: 1),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF388E3C),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF388E3C), width: 1),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -295,7 +289,8 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     // Простая проверка формата email
-    if (!_emailController.text.contains('@') || !_emailController.text.contains('.')) {
+    if (!_emailController.text.contains('@') ||
+        !_emailController.text.contains('.')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Пожалуйста, введите корректный email'),

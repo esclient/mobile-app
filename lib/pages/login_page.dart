@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../components/interactive_widgets.dart';
 import '../services/auth_service.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   final AuthService authService;
-  
+
   const LoginPage({super.key, required this.authService});
 
   @override
@@ -56,9 +57,7 @@ class _LoginPageState extends State<LoginPage> {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Column(
                     children: [
@@ -68,12 +67,18 @@ class _LoginPageState extends State<LoginPage> {
                           GestureDetector(
                             onTap: () {
                               // Возвращаемся к главному меню, минуя все промежуточные экраны
-                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              Navigator.of(
+                                context,
+                              ).popUntil((route) => route.isFirst);
                             },
                             child: const Padding(
-                              padding: EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                              padding: EdgeInsets.only(
+                                top: 10,
+                                bottom: 10,
+                                right: 10,
+                              ),
                               child: SvgIcon(
-                                assetPath: 'lib/icons/Return.svg',
+                                assetPath: 'lib/icons/return.svg',
                                 size: 24,
                                 color: Colors.white,
                               ),
@@ -105,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                             isActive: _isUsernameActive,
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Password field
                           _buildInputField(
                             controller: _passwordController,
@@ -127,7 +132,9 @@ class _LoginPageState extends State<LoginPage> {
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Восстановление пароля пока не реализовано'),
+                              content: Text(
+                                'Восстановление пароля пока не реализовано',
+                              ),
                               backgroundColor: Color(0xFF388E3C),
                             ),
                           );
@@ -192,11 +199,13 @@ class _LoginPageState extends State<LoginPage> {
                   opacity: isActive ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 200),
                   child: GestureDetector(
-                    onTap: isActive ? () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    } : null,
+                    onTap: isActive
+                        ? () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          }
+                        : null,
                     child: Container(
                       width: 40,
                       height: 40,
@@ -204,8 +213,8 @@ class _LoginPageState extends State<LoginPage> {
                       child: SvgIcon(
                         assetPath: 'lib/icons/login/HideShowToggle.svg',
                         size: 22,
-                        color: _isPasswordVisible 
-                            ? const Color(0xFF388E3C) 
+                        color: _isPasswordVisible
+                            ? const Color(0xFF388E3C)
                             : const Color(0xFF374151),
                       ),
                     ),
@@ -214,24 +223,15 @@ class _LoginPageState extends State<LoginPage> {
               : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF374151),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF374151), width: 1),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF374151),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF374151), width: 1),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF388E3C),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF388E3C), width: 1),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -301,10 +301,7 @@ class _LoginPageState extends State<LoginPage> {
         height: 50,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            width: 1,
-            color: const Color(0xFF374151),
-          ),
+          border: Border.all(width: 1, color: const Color(0xFF374151)),
         ),
         child: const Center(
           child: Text(
