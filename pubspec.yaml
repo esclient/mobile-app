@@ -36,6 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   graphql_flutter: ^5.2.0
   flutter_svg: ^2.0.10+1
+  
+  # Optimization packages
+  provider: ^6.1.2
+  cached_network_image: ^3.3.1
+  flutter_cache_manager: ^3.3.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:
