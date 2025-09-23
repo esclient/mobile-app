@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../model/mod_item.dart';
 import 'graphql_client_optimized.dart';
@@ -110,7 +111,7 @@ class OptimizedModsService {
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
 
       if (result.hasException && result.data == null) {
-        print('GraphQL error: ${result.exception}');
+        log('GraphQL error: ${result.exception}');
         return _getFallbackMods();
       }
 
@@ -124,7 +125,7 @@ class OptimizedModsService {
       
       return mods;
     } catch (e) {
-      print('Error fetching mods: $e');
+      log('Error fetching mods: $e');
       return _getFallbackMods();
     }
   }
@@ -173,7 +174,7 @@ class OptimizedModsService {
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
 
       if (result.hasException && result.data == null) {
-        print('Search error: ${result.exception}');
+        log('Search error: ${result.exception}');
         return _getFallbackSearch(query);
       }
 
@@ -187,7 +188,7 @@ class OptimizedModsService {
       
       return mods;
     } catch (e) {
-      print('Error searching mods: $e');
+      log('Error searching mods: $e');
       return _getFallbackSearch(query);
     }
   }
@@ -204,7 +205,7 @@ class OptimizedModsService {
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
 
       if (result.hasException && result.data == null) {
-        print('Error fetching mod $id: ${result.exception}');
+        log('Error fetching mod $id: ${result.exception}');
         return null;
       }
 
@@ -213,7 +214,7 @@ class OptimizedModsService {
       
       return ModItem.fromJson(modData);
     } catch (e) {
-      print('Error fetching mod $id: $e');
+      log('Error fetching mod $id: $e');
       return null;
     }
   }

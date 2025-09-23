@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../model/mod_item.dart';
 import '../services/mods_service_optimized.dart';
+import 'dart:developer';
 
 /// Provider for managing mods state with optimized data handling
 class ModsProvider extends ChangeNotifier {
@@ -170,13 +171,13 @@ class ModsProvider extends ChangeNotifier {
   /// Toggle favorite status (placeholder for future implementation)
   Future<void> toggleFavorite(String modId) async {
     // TODO: Implement favorite functionality
-    print('Toggle favorite for mod: $modId');
+    log('Toggle favorite for mod: $modId');
   }
 
   /// Report a mod (placeholder for future implementation)
   Future<void> reportMod(String modId, String reason) async {
     // TODO: Implement reporting functionality
-    print('Report mod $modId for: $reason');
+    log('Report mod $modId for: $reason');
   }
 
   void _setLoading(bool loading) {

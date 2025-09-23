@@ -1,31 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'services/service_locator.dart';
-import 'services/comments.dart';
+import 'package:provider/provider.dart';
+
 import 'model/comments.dart';
 import 'pages/mods_list_page_optimized.dart';
 import 'pages/profile_page.dart';
 import 'providers/mods_provider.dart';
+import 'services/auth_service.dart';
+import 'services/comments.dart';
+import 'services/service_locator.dart';
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Hive for caching
   await Hive.initFlutter();
-  
+
   // Initialize services once at startup
   final serviceLocator = ServiceLocator();
   await serviceLocator.initialize();
-  
+
   runApp(MyApp(serviceLocator: serviceLocator));
 }
 
 class MyApp extends StatelessWidget {
   final ServiceLocator serviceLocator;
-  
+
   const MyApp({super.key, required this.serviceLocator});
 
   @override
@@ -38,7 +40,7 @@ class MyApp extends StatelessWidget {
         Provider.value(value: serviceLocator.modsService),
         Provider.value(value: serviceLocator.authService),
         Provider.value(value: serviceLocator.commentService),
-        
+
         // State providers
         ChangeNotifierProvider<ModsProvider>(
           create: (context) => ModsProvider(serviceLocator.modsService),
@@ -52,16 +54,13 @@ class MyApp extends StatelessWidget {
         routes: {
           AppRoutes.comments: (context) => Scaffold(
             appBar: AppBar(title: const Text(AppStrings.navComments)),
-            body: CommentsList(
-              commentService: context.read<CommentService>(),
-            ),
+            body: CommentsList(commentService: context.read<CommentService>()),
           ),
-          AppRoutes.profile: (context) => ProfilePage(
-            authService: context.read<AuthService>(),
-          ),
+          AppRoutes.profile: (context) =>
+              ProfilePage(authService: context.read<AuthService>()),
         },
         debugShowCheckedModeBanner: false,
-        
+
         // Performance optimizations
         builder: (context, child) {
           // Disable glow effect on Android for better performance
@@ -77,16 +76,18 @@ class MyApp extends StatelessWidget {
 
 class CommentsList extends StatefulWidget {
   final CommentService commentService;
+
   const CommentsList({super.key, required this.commentService});
 
   @override
   State<CommentsList> createState() => _CommentsListState();
 }
 
-class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClientMixin {
+class _CommentsListState extends State<CommentsList>
+    with AutomaticKeepAliveClientMixin {
   late Future<List<Comment>> _future;
   final String _commentId = '69';
-  
+
   // Keep state alive for better performance
   @override
   bool get wantKeepAlive => true;
@@ -104,26 +105,24 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    
+
     return FutureBuilder<List<Comment>>(
       future: _future,
       builder: (ctx, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF388E3C),
-            ),
+            child: CircularProgressIndicator(color: Color(0xFF388E3C)),
           );
         } else if (snap.hasError) {
           return _buildErrorWidget(snap.error.toString());
         }
-        
+
         final comments = snap.data!;
-        
+
         if (comments.isEmpty) {
           return _buildEmptyWidget();
         }
-        
+
         return RefreshIndicator(
           onRefresh: () async {
             setState(() {
@@ -136,7 +135,8 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
             padding: const EdgeInsets.all(AppSizes.paddingMedium),
             itemCount: comments.length,
             // Optimizations for better performance
-            itemExtent: null, // Let items size themselves
+            itemExtent: null,
+            // Let items size themselves
             cacheExtent: 500,
             addAutomaticKeepAlives: false,
             addRepaintBoundaries: true,
@@ -154,17 +154,14 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
       },
     );
   }
-  
+
   Widget _buildCommentCard(Comment comment) {
     return Card(
       key: ValueKey('comment_${comment.authorId}_${comment.createdAt}'),
       color: const Color(0xFF181F2A),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(
-          color: Color(0xFF374151),
-          width: 1,
-        ),
+        side: const BorderSide(color: Color(0xFF374151), width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSizes.paddingLarge),
@@ -216,24 +213,17 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
       ),
     );
   }
-  
+
   Widget _buildErrorWidget(String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Color(0xFF9CA3AF),
-          ),
+          const Icon(Icons.error_outline, size: 64, color: Color(0xFF9CA3AF)),
           const SizedBox(height: 16),
           Text(
             'Ошибка: $error',
-            style: const TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -253,30 +243,23 @@ class _CommentsListState extends State<CommentsList> with AutomaticKeepAliveClie
       ),
     );
   }
-  
+
   Widget _buildEmptyWidget() {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.comment_outlined,
-            size: 64,
-            color: Color(0xFF9CA3AF),
-          ),
+          Icon(Icons.comment_outlined, size: 64, color: Color(0xFF9CA3AF)),
           SizedBox(height: 16),
           Text(
             'Комментарии не найдены',
-            style: TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontSize: 16,
-            ),
+            style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
           ),
         ],
       ),
     );
   }
-  
+
   String _formatDate(int timestamp) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';

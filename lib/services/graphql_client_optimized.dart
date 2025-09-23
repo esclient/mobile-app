@@ -1,4 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'dart:developer';
 
 /// Optimized GraphQL client with better caching and error handling
 Future<GraphQLClient> initGraphQLClient() async {
@@ -37,10 +38,6 @@ Future<GraphQLClient> initGraphQLClient() async {
       ),
     ),
     queryRequestTimeout: const Duration(seconds: 30), // Add timeout
-    connectFn: (uri, protocols) async {
-      // Custom connection function if needed for WebSocket
-      return null;
-    },
   );
 }
 
@@ -115,12 +112,14 @@ class GraphQLHelper {
   /// Prefetch data for better performance
   Future<void> prefetchQuery(QueryOptions options) async {
     try {
-      await client.query(options.copyWith(
+      await client.query(QueryOptions(
+        document: options.document,
+        variables: options.variables,
         fetchPolicy: FetchPolicy.networkOnly,
       ));
     } catch (e) {
       // Silently fail prefetch
-      print('Prefetch failed: $e');
+      log('Prefetch failed: $e');
     }
   }
 }
