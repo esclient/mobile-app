@@ -1,1 +1,0 @@
-#!/bin/bash\n\n# Script to fix Flutter/Dart analysis issues\n\necho \"🔄 Перезапуск Flutter анализа...\"\n\n# Navigate to project directory\ncd \"D:\\GITHUB\\ESCLIENT\\mobile-app\"\n\n# Clean Flutter\nflutter clean\n\n# Get dependencies\nflutter pub get\n\n# Run analysis\nflutter analyze\n\necho \"✅ Готово!\"\n
