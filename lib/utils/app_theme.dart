@@ -183,4 +183,22 @@ class AppTheme {
   static const Color textSecondary = Color(AppColors.textSecondary);
   static const Color textMuted = Color(AppColors.textMuted);
   static const Color placeholderColor = Color(AppColors.placeholder);
+  
+  // Удобный доступ к цветам через colors
+  static const AppColorsAccess colors = AppColorsAccess();
+}
+
+// Класс для удобного доступа к цветам
+class AppColorsAccess {
+  const AppColorsAccess();
+  
+  Color get background => const Color(AppColors.primaryBackground);
+  Color get surface => const Color(AppColors.cardBackground);
+  Color get border => const Color(AppColors.border);
+  Color get primary => const Color(AppColors.accent);
+  Color get warning => const Color(AppColors.warning);
+  Color get onSurface => const Color(AppColors.textPrimary);
+  Color get onSurfaceSecondary => const Color(AppColors.textSecondary);
+  Color get onSurfaceMuted => const Color(AppColors.textMuted);
+  Color get placeholder => const Color(AppColors.placeholder);
 }

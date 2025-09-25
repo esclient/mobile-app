@@ -1,13 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:async';
+// import 'improved_search_bar.dart'; // Unused import removed
 
 /// Optimized search input with debouncing
 class OptimizedSearchInput extends StatefulWidget {
   final String? initialValue;
   final ValueChanged<String> onSubmitted;
   final Duration debounceDelay;
-  
+
   const OptimizedSearchInput({
     super.key,
     this.initialValue,
@@ -22,7 +24,7 @@ class OptimizedSearchInput extends StatefulWidget {
 class _OptimizedSearchInputState extends State<OptimizedSearchInput> {
   late TextEditingController _controller;
   Timer? _debounceTimer;
-  
+
   @override
   void initState() {
     super.initState();
@@ -50,10 +52,7 @@ class _OptimizedSearchInputState extends State<OptimizedSearchInput> {
       decoration: BoxDecoration(
         color: const Color(0xFF374151),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF4B5563),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFF4B5563), width: 1),
       ),
       child: TextField(
         controller: _controller,
@@ -124,7 +123,7 @@ class SvgIcon extends StatelessWidget {
       assetPath,
       width: size,
       height: size,
-      colorFilter: color != null 
+      colorFilter: color != null
           ? ColorFilter.mode(color!, BlendMode.srcIn)
           : null,
       // Enable caching for better performance
@@ -167,8 +166,8 @@ class StarRating extends StatelessWidget {
           starRating <= rating.floor()
               ? Icons.star
               : starRating <= rating
-                  ? Icons.star_half
-                  : Icons.star_border,
+              ? Icons.star_half
+              : Icons.star_border,
           size: starSize,
           color: starRating <= rating ? activeColor : inactiveColor,
         );
@@ -197,13 +196,13 @@ class PeriodButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected 
-              ? const Color(0xFF388E3C) 
+          backgroundColor: isSelected
+              ? const Color(0xFF388E3C)
               : const Color(0xFF374151),
           foregroundColor: Colors.white,
           side: BorderSide(
-            color: isSelected 
-                ? const Color(0xFF4ADE80) 
+            color: isSelected
+                ? const Color(0xFF4ADE80)
                 : const Color(0xFF6B7280),
             width: 1,
           ),
@@ -249,13 +248,13 @@ class InteractiveTag extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected 
-              ? const Color(0xFF388E3C) 
+          backgroundColor: isSelected
+              ? const Color(0xFF388E3C)
               : const Color(0xFF4B5563),
           foregroundColor: Colors.white,
           side: BorderSide(
-            color: isSelected 
-                ? const Color(0xFF4ADE80) 
+            color: isSelected
+                ? const Color(0xFF4ADE80)
                 : const Color(0xFF6B7280),
             width: 1,
           ),
@@ -287,12 +286,8 @@ class InteractiveTag extends StatelessWidget {
 class OptimizedLoadingIndicator extends StatelessWidget {
   final String? message;
   final double size;
-  
-  const OptimizedLoadingIndicator({
-    super.key,
-    this.message,
-    this.size = 40,
-  });
+
+  const OptimizedLoadingIndicator({super.key, this.message, this.size = 40});
 
   @override
   Widget build(BuildContext context) {
@@ -312,10 +307,7 @@ class OptimizedLoadingIndicator extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               message!,
-              style: const TextStyle(
-                color: Color(0xFF9CA3AF),
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
             ),
           ],
         ],
@@ -329,7 +321,7 @@ class OptimizedErrorWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
   final String retryButtonText;
-  
+
   const OptimizedErrorWidget({
     super.key,
     required this.message,
@@ -343,26 +335,16 @@ class OptimizedErrorWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Color(0xFF9CA3AF),
-          ),
+          const Icon(Icons.error_outline, size: 64, color: Color(0xFF9CA3AF)),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
             const SizedBox(height: 16),
-            PeriodButton(
-              text: retryButtonText,
-              onPressed: onRetry,
-            ),
+            PeriodButton(text: retryButtonText, onPressed: onRetry),
           ],
         ],
       ),
@@ -376,7 +358,7 @@ class OptimizedEmptyWidget extends StatelessWidget {
   final String iconPath;
   final VoidCallback? onAction;
   final String? actionText;
-  
+
   const OptimizedEmptyWidget({
     super.key,
     required this.message,
@@ -399,18 +381,12 @@ class OptimizedEmptyWidget extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
             textAlign: TextAlign.center,
           ),
           if (onAction != null && actionText != null) ...[
             const SizedBox(height: 16),
-            PeriodButton(
-              text: actionText!,
-              onPressed: onAction,
-            ),
+            PeriodButton(text: actionText!, onPressed: onAction),
           ],
         ],
       ),
@@ -422,7 +398,7 @@ class OptimizedEmptyWidget extends StatelessWidget {
 class ShimmerLoading extends StatefulWidget {
   final Widget child;
   final bool isLoading;
-  
+
   const ShimmerLoading({
     super.key,
     required this.child,
@@ -445,13 +421,9 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _animation = Tween<double>(
-      begin: -1.0,
-      end: 2.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOutSine,
-    ));
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
 
     if (widget.isLoading) {
       _controller.repeat();

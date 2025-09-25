@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter_svg/flutter_svg.dart';
-import 'interactive_widgets.dart'; // For InteractiveSearchBar
+
+import 'search_bar.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onSettingsPressed;
@@ -14,7 +15,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool showActualSearchBar;
   final String? searchQuery;
   final ValueChanged<String>? onSearchSubmitted;
-  final VoidCallback? onFilterPressed; // Filter button is part of InteractiveSearchBar
+  final VoidCallback?
+  onFilterPressed; // Filter button is part of InteractiveSearchBar
 
   const AppHeader({
     super.key,
@@ -40,35 +42,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: OptimizedSearchInput(
+                  child: SearchBar(
                     initialValue: searchQuery,
                     onSubmitted: onSearchSubmitted ?? (value) {},
+                    onFilterPressed: onFilterPressed,
+                    hintText: 'Поиск модов...',
                   ),
                 ),
-                if (onFilterPressed != null) ...[
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 46,
-                    height: 46,
-                    child: GestureDetector(
-                      onTap: onFilterPressed,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFF374151)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: SvgPicture.asset(
-                            'lib/icons/header/filter.svg',
-                            colorFilter: const ColorFilter.mode(Color(0xBF9B9B9B), BlendMode.srcIn),
-                            width: 20,
-                            height: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -79,7 +59,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               iconAsset: 'lib/icons/header/gear.svg',
               onTap: onSettingsPressed!,
               context: context,
-              tooltip: 'Настройки пока не реализованы', // Generic tooltip or could be passed
+              tooltip:
+                  'Настройки пока не реализованы', // Generic tooltip or could be passed
             ),
           ],
           if (onNotificationPressed != null) ...[
@@ -88,12 +69,14 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               iconAsset: 'lib/icons/header/notification.svg',
               onTap: onNotificationPressed!,
               context: context,
-              tooltip: 'Уведомления пока не реализованы', // Generic tooltip or could be passed
+              tooltip:
+                  'Уведомления пока не реализованы', // Generic tooltip or could be passed
             ),
           ],
         ],
       );
-    } else if (searchPlaceholderText != null && onSearchPlaceholderTap != null) {
+    } else if (searchPlaceholderText != null &&
+        onSearchPlaceholderTap != null) {
       // Content for ImprovedProfileScreen (Search placeholder + external action buttons)
       headerContent = Row(
         children: [
@@ -103,6 +86,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               child: Container(
                 height: 50, // Matches InteractiveSearchBar internal height
                 decoration: BoxDecoration(
+                  color: const Color(0xFF1F2937), // Background color matching screen background
                   border: Border.all(color: const Color(0xFF374151)),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -111,7 +95,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     const SizedBox(width: 12),
                     SvgPicture.asset(
                       'lib/icons/header/search.svg',
-                      colorFilter: const ColorFilter.mode(Color(0xBF9B9B9B), BlendMode.srcIn),
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xBF9B9B9B),
+                        BlendMode.srcIn,
+                      ),
                       width: 20,
                       height: 20,
                     ),
@@ -157,15 +144,16 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     }
 
     return Container(
-      height: preferredSize.height, // 74.0
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Content area padding
+      height: preferredSize.height,
+      // 74.0
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      // Content area padding
       decoration: const BoxDecoration(
         color: Color(0xFF1F2937),
-        border: Border(
-          bottom: BorderSide(color: Color(0xFF374151), width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFF374151), width: 1)),
       ),
-      child: Center( // Added Center to ensure vertical alignment if content is shorter than 50px
+      child: Center(
+        // Added Center to ensure vertical alignment if content is shorter than 50px
         child: SizedBox(
           height: 50, // Explicit height for the content row
           child: headerContent,
@@ -180,14 +168,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     required BuildContext context, // Needed for ScaffoldMessenger
     required String tooltip, // For the SnackBar message
   }) {
-    // This button is 46x46, plus SizedBox(width:8) gives 54. 
+    // This button is 46x46, plus SizedBox(width:8) gives 54.
     // The container padding is 12, so total height of AppHeader is 74.
     // The content row is 50px high. This button will be centered within that 50px.
     return SizedBox(
       width: 46, // Standard width for these action buttons
       height: 46, // Standard height for these action buttons
       child: GestureDetector(
-        onTap: () { // Modified to show SnackBar from tooltip
+        onTap: () {
+          // Show the tooltip message (same as notifications behavior)
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(tooltip),
@@ -205,7 +194,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           child: Center(
             child: SvgPicture.asset(
               iconAsset,
-              colorFilter: const ColorFilter.mode(Color(0xBF9B9B9B), BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Color(0xBF9B9B9B),
+                BlendMode.srcIn,
+              ),
               width: 20,
               height: 20,
             ),

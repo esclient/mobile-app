@@ -1,0 +1,335 @@
+Container(
+    width: 362.54,
+    height: 300,
+    clipBehavior: Clip.antiAlias,
+    decoration: ShapeDecoration(
+        shape: RoundedRectangleBorder(
+            side: BorderSide(
+                width: 1,
+                color: const Color(0xFF8A38F5),
+            ),
+            borderRadius: BorderRadius.circular(5),
+        ),
+    ),
+    child: Stack(
+        children: [
+            Positioned(
+                left: 20,
+                top: 230,
+                child: Container(
+                    width: 322.54,
+                    height: 50,
+                    decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                        ),
+                    ),
+                    child: Stack(
+                        children: [
+                            Positioned(
+                                left: 0,
+                                top: 0,
+                                child: Container(
+                                    width: 323,
+                                    height: 50,
+                                    decoration: ShapeDecoration(
+                                        shape: RoundedRectangleBorder(
+                                            side: BorderSide(
+                                                width: 1,
+                                                color: const Color(0xFF374151),
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                        ),
+                                    ),
+                                    child: Stack(
+                                        children: [
+                                            Positioned(
+                                                left: 0,
+                                                top: 0,
+                                                child: Container(
+                                                    width: 323,
+                                                    height: 50,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                    child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        spacing: 13,
+                                                        children: [
+                                                            Container(
+                                                                width: 20.88,
+                                                                height: 20,
+                                                                clipBehavior: Clip.antiAlias,
+                                                                decoration: BoxDecoration(),
+                                                                child: Stack(),
+                                                            ),
+                                                            Text(
+                                                                'Input value',
+                                                                style: TextStyle(
+                                                                    color: const Color(0xBF9B9B9B),
+                                                                    fontSize: 16,
+                                                                    fontFamily: 'Roboto',
+                                                                    fontWeight: FontWeight.w400,
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                        ],
+                    ),
+                ),
+            ),
+            Positioned(
+                left: 20,
+                top: 160,
+                child: Container(
+                    width: 322.54,
+                    height: 50,
+                    decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                        ),
+                    ),
+                    child: Stack(
+                        children: [
+                            Positioned(
+                                left: 280,
+                                top: 2,
+                                child: Container(
+                                    width: 44.29,
+                                    height: 46,
+                                    decoration: ShapeDecoration(
+                                        shape: RoundedRectangleBorder(
+                                            side: BorderSide(
+                                                width: 1,
+                                                color: const Color(0xFF374151),
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                        ),
+                                    ),
+                                    child: Stack(
+                                        children: [
+                                            Positioned(
+                                                left: 12.52,
+                                                top: 13,
+                                                child: Container(
+                                                    width: 19.26,
+                                                    height: 20,
+                                                    clipBehavior: Clip.antiAlias,
+                                                    decoration: BoxDecoration(),
+                                                    child: Stack(),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                            Positioned(
+                                left: 0,
+                                top: 0,
+                                child: Container(
+                                    width: 275,
+                                    decoration: ShapeDecoration(
+                                        shape: RoundedRectangleBorder(
+                                            side: BorderSide(
+                                                width: 1,
+                                                color: const Color(0xFF388E3C),
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                        ),
+                                    ),
+                                    child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        spacing: 10,
+                                        children: [
+                                            Expanded(
+                                                child: Container(
+                                                    height: 50,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                    child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        spacing: 13,
+                                                        children: [
+                                                            Container(
+                                                                width: 20.88,
+                                                                height: 20,
+                                                                clipBehavior: Clip.antiAlias,
+                                                                decoration: BoxDecoration(),
+                                                                child: Stack(),
+                                                            ),
+                                                            Text(
+                                                                '|',
+                                                                style: TextStyle(
+                                                                    color: const Color(0xFF9C9C9C),
+                                                                    fontSize: 16,
+                                                                    fontFamily: 'Roboto',
+                                                                    fontWeight: FontWeight.w400,
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                        ],
+                    ),
+                ),
+            ),
+            Positioned(
+                left: 20,
+                top: 90,
+                child: Container(
+                    width: 322.54,
+                    height: 50,
+                    decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                        ),
+                    ),
+                    child: Stack(
+                        children: [
+                            Positioned(
+                                left: 0,
+                                top: 0,
+                                child: Container(
+                                    width: 322.54,
+                                    height: 50,
+                                    clipBehavior: Clip.antiAlias,
+                                    decoration: ShapeDecoration(
+                                        shape: RoundedRectangleBorder(
+                                            side: BorderSide(
+                                                width: 1,
+                                                color: const Color(0xFF388E3C),
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                        ),
+                                    ),
+                                    child: Stack(
+                                        children: [
+                                            Positioned(
+                                                left: 0,
+                                                top: 0,
+                                                child: Container(
+                                                    width: 322.54,
+                                                    height: 50,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                    child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        spacing: 13,
+                                                        children: [
+                                                            Container(
+                                                                width: 20.88,
+                                                                height: 20,
+                                                                clipBehavior: Clip.antiAlias,
+                                                                decoration: BoxDecoration(),
+                                                                child: Stack(),
+                                                            ),
+                                                            Text(
+                                                                'Find something',
+                                                                style: TextStyle(
+                                                                    color: const Color(0xBF9B9B9B),
+                                                                    fontSize: 16,
+                                                                    fontFamily: 'Roboto',
+                                                                    fontWeight: FontWeight.w400,
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                        ],
+                    ),
+                ),
+            ),
+            Positioned(
+                left: 20,
+                top: 20,
+                child: Container(
+                    width: 322.54,
+                    height: 50,
+                    decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                        ),
+                    ),
+                    child: Stack(
+                        children: [
+                            Positioned(
+                                left: 0,
+                                top: 0,
+                                child: Container(
+                                    width: 323,
+                                    height: 50,
+                                    decoration: ShapeDecoration(
+                                        shape: RoundedRectangleBorder(
+                                            side: BorderSide(
+                                                width: 1,
+                                                color: const Color(0xFF374151),
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                        ),
+                                    ),
+                                    child: Stack(
+                                        children: [
+                                            Positioned(
+                                                left: 0,
+                                                top: 0,
+                                                child: Container(
+                                                    width: 323,
+                                                    height: 50,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                    child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        spacing: 13,
+                                                        children: [
+                                                            Container(
+                                                                width: 20.88,
+                                                                height: 20,
+                                                                clipBehavior: Clip.antiAlias,
+                                                                decoration: BoxDecoration(),
+                                                                child: Stack(),
+                                                            ),
+                                                            Text(
+                                                                'Find something',
+                                                                style: TextStyle(
+                                                                    color: const Color(0xBF9B9B9B),
+                                                                    fontSize: 16,
+                                                                    fontFamily: 'Roboto',
+                                                                    fontWeight: FontWeight.w400,
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                        ],
+                    ),
+                ),
+            ),
+        ],
+    ),
+)

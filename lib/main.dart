@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'model/comments.dart';
 import 'pages/mods_list_page.dart';
 import 'pages/profile_page.dart';
+import 'pages/search_test_page.dart';
 import 'providers/mods_provider.dart';
 import 'services/auth_service.dart';
 import 'services/comments.dart';
@@ -54,10 +55,15 @@ class MyApp extends StatelessWidget {
         routes: {
           AppRoutes.comments: (context) => Scaffold(
             appBar: AppBar(title: const Text(AppStrings.navComments)),
-            body: CommentsList(commentService: context.read<CommentService>()),
+            body: Builder(
+              builder: (context) => CommentsList(
+                commentService: Provider.of<CommentService>(context, listen: false)
+              ),
+            ),
           ),
           AppRoutes.profile: (context) =>
               ProfilePage(authService: context.read<AuthService>()),
+          '/search-test': (context) => const SearchTestPage(),
         },
         debugShowCheckedModeBanner: false,
 

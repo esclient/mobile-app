@@ -211,7 +211,7 @@ class _LoginPageState extends State<LoginPage> {
                       height: 40,
                       padding: const EdgeInsets.all(10.0),
                       child: SvgIcon(
-                        assetPath: 'lib/icons/login/HideShowToggle.svg',
+                        assetPath: 'lib/icons/login/hide_show_toggle.svg',
                         size: 22,
                         color: _isPasswordVisible
                             ? const Color(0xFF388E3C)
