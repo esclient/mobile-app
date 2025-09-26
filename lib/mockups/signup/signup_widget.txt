@@ -1,0 +1,250 @@
+Container(
+    width: 440,
+    height: 956,
+    clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(color: const Color(0xFF1F2937)),
+    child: Stack(
+        children: [
+            Positioned(
+                left: 0,
+                top: 862,
+                child: Container(
+                    width: 440,
+                    height: 94,
+                    child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        spacing: 16,
+                        children: [
+                            Container(
+                                width: 440,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    spacing: 10,
+                                    children: [
+                                        Container(
+                                            width: double.infinity,
+                                            child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                spacing: 16,
+                                                children: [
+                                                    Container(
+                                                        width: double.infinity,
+                                                        height: 54,
+                                                        decoration: ShapeDecoration(
+                                                            shape: RoundedRectangleBorder(
+                                                                side: BorderSide(
+                                                                    width: 2,
+                                                                    strokeAlign: BorderSide.strokeAlignCenter,
+                                                                    color: const Color(0xFF388E3C),
+                                                                ),
+                                                                borderRadius: BorderRadius.circular(14),
+                                                            ),
+                                                        ),
+                                                        child: Stack(
+                                                            children: [
+                                                                Positioned(
+                                                                    left: 180,
+                                                                    top: 18,
+                                                                    child: Text(
+                                                                        'Log in',
+                                                                        style: TextStyle(
+                                                                            color: Colors.white,
+                                                                            fontSize: 16,
+                                                                            fontFamily: 'Roboto',
+                                                                            fontWeight: FontWeight.w600,
+                                                                        ),
+                                                                    ),
+                                                                ),
+                                                            ],
+                                                        ),
+                                                    ),
+                                                ],
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                            ),
+                        ],
+                    ),
+                ),
+            ),
+            Positioned(
+                left: 0,
+                top: 322.50,
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    spacing: 20,
+                    children: [
+                        Container(
+                            height: 124,
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 10,
+                                children: [
+                                    Container(
+                                        width: 440,
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            spacing: 10,
+                                            children: [
+                                                Container(
+                                                    width: double.infinity,
+                                                    child: Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        spacing: 16,
+                                                        children: [
+                                                            Container(
+                                                                width: double.infinity,
+                                                                height: 54,
+                                                                padding: const EdgeInsets.symmetric(horizontal: 15),
+                                                                decoration: ShapeDecoration(
+                                                                    color: const Color(0x7F374151),
+                                                                    shape: RoundedRectangleBorder(
+                                                                        borderRadius: BorderRadius.circular(14),
+                                                                    ),
+                                                                ),
+                                                                child: Row(
+                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                                    spacing: 10,
+                                                                    children: [
+                                                                        Text(
+                                                                            'Email',
+                                                                            style: TextStyle(
+                                                                                color: const Color(0xBF9B9B9B),
+                                                                                fontSize: 16,
+                                                                                fontFamily: 'Roboto',
+                                                                                fontWeight: FontWeight.w600,
+                                                                            ),
+                                                                        ),
+                                                                    ],
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ),
+                                    Container(
+                                        width: 408,
+                                        child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            spacing: 9,
+                                            children: [
+                                                Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    spacing: 8,
+                                                    children: [
+                                                        Container(
+                                                            width: 32,
+                                                            height: 32,
+                                                            decoration: ShapeDecoration(
+                                                                shape: RoundedRectangleBorder(
+                                                                    side: BorderSide(
+                                                                        width: 2,
+                                                                        color: const Color(0xFF797979),
+                                                                    ),
+                                                                    borderRadius: BorderRadius.circular(6),
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ],
+                                                ),
+                                                SizedBox(
+                                                    width: 329,
+                                                    child: Text(
+                                                        'I want to receive news about my modifications (such as uploads, updates, ban and deleting) and also about new version of the app',
+                                                        style: TextStyle(
+                                                            color: const Color(0xFFBBBBBB),
+                                                            fontSize: 15,
+                                                            fontFamily: 'Roboto',
+                                                            fontWeight: FontWeight.w400,
+                                                            height: 1.33,
+                                                        ),
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ),
+                        Container(
+                            height: 54,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 10,
+                                children: [
+                                    Container(
+                                        width: 408,
+                                        child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            spacing: 16,
+                                            children: [
+                                                Container(
+                                                    width: double.infinity,
+                                                    height: 54,
+                                                    decoration: ShapeDecoration(
+                                                        color: const Color(0xFF388E3C),
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(14),
+                                                        ),
+                                                    ),
+                                                    child: Stack(
+                                                        children: [
+                                                            Positioned(
+                                                                left: 177,
+                                                                top: 18,
+                                                                child: Text(
+                                                                    'Sign up',
+                                                                    textAlign: TextAlign.center,
+                                                                    style: TextStyle(
+                                                                        color: Colors.white,
+                                                                        fontSize: 16,
+                                                                        fontFamily: 'Roboto',
+                                                                        fontWeight: FontWeight.w600,
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    ),
+)
