@@ -21,6 +21,7 @@ class _ModsListPageState extends State<ModsListPage>
   // State variables
   int selectedPeriodIndex = 0;
   final ScrollController _scrollController = ScrollController();
+  TextEditingController? _searchController;
   
   // Constants
   static const List<String> periods = ['За всё время', 'За месяц', 'За неделю', 'Недавние'];
@@ -76,6 +77,9 @@ class _ModsListPageState extends State<ModsListPage>
           ? null 
           : context.watch<ModsProvider>().currentSearchQuery,
         onSearchSubmitted: _onSearchChanged,
+        onSearchControllerCreated: (controller) {
+          _searchController = controller;
+        },
         onFilterPressed: _showFilterDialog,
         onSettingsPressed: _showSettings,
         onNotificationPressed: _showNotifications,
@@ -324,6 +328,8 @@ class _ModsListPageState extends State<ModsListPage>
               text: 'Показать все моды',
               onPressed: () {
                 context.read<ModsProvider>().clearSearch();
+                // Clear search input field
+                _searchController?.clear();
               },
             ),
           ],

@@ -9,13 +9,13 @@ class ModsService {
   final GraphQLHelper _graphqlHelper;
   final _searchController = StreamController<String>.broadcast();
   Timer? _debounceTimer;
-  
+
   // Cache for storing fetched mods to avoid unnecessary API calls
   final Map<String, List<ModItem>> _modsCache = {};
   final Map<String, DateTime> _cacheTimestamps = {};
   final Duration _cacheExpiry = const Duration(minutes: 5);
 
-  ModsService(GraphQLClient client) 
+  ModsService(GraphQLClient client)
       : _graphqlHelper = GraphQLHelper(client) {
     _initializeSearchDebouncing();
   }
@@ -91,7 +91,7 @@ class ModsService {
     int offset = 0,
   }) async {
     final cacheKey = '$period-$limit-$offset';
-    
+
     // Check cache first
     if (_isCacheValid(cacheKey)) {
       return _modsCache[cacheKey]!;
@@ -119,10 +119,10 @@ class ModsService {
       final List<ModItem> mods = modsData
           .map((json) => ModItem.fromJson(json))
           .toList();
-      
+
       // Cache the results
       _updateCache(cacheKey, mods);
-      
+
       return mods;
     } catch (e) {
       log('Error fetching mods: $e');
@@ -149,12 +149,14 @@ class ModsService {
 
   /// Search mods with retry logic
   Future<List<ModItem>> searchMods(String query) async {
-    if (query.trim().isEmpty) {
+    if (query
+        .trim()
+        .isEmpty) {
       return fetchMods();
     }
 
     final cacheKey = 'search-$query';
-    
+
     // Check cache first
     if (_isCacheValid(cacheKey)) {
       return _modsCache[cacheKey]!;
@@ -182,10 +184,10 @@ class ModsService {
       final List<ModItem> mods = modsData
           .map((json) => ModItem.fromJson(json))
           .toList();
-      
+
       // Cache the search results
       _updateCache(cacheKey, mods);
-      
+
       return mods;
     } catch (e) {
       log('Error searching mods: $e');
@@ -211,7 +213,7 @@ class ModsService {
 
       final dynamic modData = result.data?['mod'];
       if (modData == null) return null;
-      
+
       return ModItem.fromJson(modData);
     } catch (e) {
       log('Error fetching mod $id: $e');
@@ -229,7 +231,7 @@ class ModsService {
         'offset': 0,
       },
     );
-    
+
     await _graphqlHelper.prefetchQuery(options);
   }
 
@@ -249,10 +251,10 @@ class ModsService {
   /// Check if cache is still valid
   bool _isCacheValid(String key) {
     if (!_modsCache.containsKey(key)) return false;
-    
+
     final timestamp = _cacheTimestamps[key];
     if (timestamp == null) return false;
-    
+
     return DateTime.now().difference(timestamp) < _cacheExpiry;
   }
 
@@ -265,7 +267,8 @@ class ModsService {
         description: 'Offline fallback - Improves visual quality with better textures, lighting, and effects. Perfect for immersive gameplay experience.',
         rating: 4.8,
         ratingsCount: 5432,
-        imageUrl: 'lib/icons/main/mod_test_pfp.png', // Local fallback
+        imageUrl: 'lib/icons/main/mod_test_pfp.png',
+        // Local fallback
         tags: ['Graphics', 'Visual', 'Enhancement', 'Quality'],
         createdAt: DateTime.now().subtract(const Duration(days: 30)),
         authorId: 'fallback_author_1',
@@ -303,9 +306,9 @@ class ModsService {
     final fallbackMods = _getFallbackMods();
     return fallbackMods
         .where((mod) =>
-            mod.title.toLowerCase().contains(query.toLowerCase()) ||
-            mod.description.toLowerCase().contains(query.toLowerCase()) ||
-            mod.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase())))
+    mod.title.toLowerCase().contains(query.toLowerCase()) ||
+        mod.description.toLowerCase().contains(query.toLowerCase()) ||
+        mod.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase())))
         .toList();
   }
 

@@ -139,7 +139,7 @@ class SvgIcon extends StatelessWidget {
   }
 }
 
-/// Optimized star rating widget
+/// Optimized star rating widget using custom SVG icon
 class StarRating extends StatelessWidget {
   final double rating;
   final double starSize;
@@ -162,14 +162,11 @@ class StarRating extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(maxStars, (index) {
         final starRating = index + 1;
-        return Icon(
-          starRating <= rating.floor()
-              ? Icons.star
-              : starRating <= rating
-              ? Icons.star_half
-              : Icons.star_border,
+        final isFilled = starRating <= rating;
+        return SvgIcon(
+          assetPath: 'lib/icons/rating/star.svg',
           size: starSize,
-          color: starRating <= rating ? activeColor : inactiveColor,
+          color: isFilled ? activeColor : inactiveColor,
         );
       }),
     );
@@ -202,8 +199,8 @@ class PeriodButton extends StatelessWidget {
           foregroundColor: Colors.white,
           side: BorderSide(
             color: isSelected
-                ? const Color(0xFF4ADE80)
-                : const Color(0xFF6B7280),
+                ? const Color(0xFF388E3C)
+                : const Color(0xFF4B5563),
             width: 1,
           ),
           shape: RoundedRectangleBorder(
