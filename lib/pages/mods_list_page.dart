@@ -21,6 +21,7 @@ class _ModsListPageState extends State<ModsListPage>
   // State variables
   int selectedPeriodIndex = 0;
   final ScrollController _scrollController = ScrollController();
+  TextEditingController? _searchController;
   
   // Constants
   static const List<String> periods = ['За всё время', 'За месяц', 'За неделю', 'Недавние'];
@@ -61,7 +62,15 @@ class _ModsListPageState extends State<ModsListPage>
   }
 
   void _onSearchChanged(String query) {
-    context.read<ModsProvider>().searchMods(query);
+    final modsProvider = context.read<ModsProvider>();
+    
+    // If search query is empty, clear search and return to default view
+    if (query.trim().isEmpty) {
+      modsProvider.clearSearch();
+      modsProvider.loadMods(period: periodKeys[selectedPeriodIndex]);
+    } else {
+      modsProvider.searchMods(query);
+    }
   }
 
   @override
@@ -76,6 +85,9 @@ class _ModsListPageState extends State<ModsListPage>
           ? null 
           : context.watch<ModsProvider>().currentSearchQuery,
         onSearchSubmitted: _onSearchChanged,
+        onSearchControllerCreated: (controller) {
+          _searchController = controller;
+        },
         onFilterPressed: _showFilterDialog,
         onSettingsPressed: _showSettings,
         onNotificationPressed: _showNotifications,
@@ -155,6 +167,8 @@ class _ModsListPageState extends State<ModsListPage>
       
       final modsProvider = context.read<ModsProvider>();
       modsProvider.clearSearch(); // Clear search when changing period
+      // Clear the search input field
+      _searchController?.clear();
       modsProvider.loadMods(period: periodKeys[index]);
     }
   }
@@ -323,7 +337,12 @@ class _ModsListPageState extends State<ModsListPage>
             PeriodButton(
               text: 'Показать все моды',
               onPressed: () {
-                context.read<ModsProvider>().clearSearch();
+                final modsProvider = context.read<ModsProvider>();
+                modsProvider.clearSearch();
+                // Clear search input field
+                _searchController?.clear();
+                // Reload mods with current period
+                modsProvider.loadMods(period: periodKeys[selectedPeriodIndex]);
               },
             ),
           ],

@@ -76,6 +76,7 @@ flutter:
     - lib/icons/logo.svg
     - lib/icons/image_preview.svg
     - lib/icons/return.svg
+    - lib/icons/rating/star.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

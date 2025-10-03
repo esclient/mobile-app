@@ -15,6 +15,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool showActualSearchBar;
   final String? searchQuery;
   final ValueChanged<String>? onSearchSubmitted;
+  final ValueChanged<TextEditingController>? onSearchControllerCreated;
   final VoidCallback?
   onFilterPressed; // Filter button is part of InteractiveSearchBar
 
@@ -27,6 +28,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.showActualSearchBar = false,
     this.searchQuery,
     this.onSearchSubmitted,
+    this.onSearchControllerCreated,
     this.onFilterPressed,
   });
 
@@ -45,6 +47,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                   child: SearchBar(
                     initialValue: searchQuery,
                     onSubmitted: onSearchSubmitted ?? (value) {},
+                    onControllerCreated: onSearchControllerCreated,
                     onFilterPressed: onFilterPressed,
                     hintText: 'Поиск модов...',
                   ),

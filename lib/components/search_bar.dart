@@ -18,6 +18,7 @@ class SearchBar extends StatefulWidget {
   final VoidCallback? onFilterPressed;
   final Duration debounceDelay;
   final String hintText;
+  final ValueChanged<TextEditingController>? onControllerCreated;
   
   const SearchBar({
     super.key,
@@ -26,6 +27,7 @@ class SearchBar extends StatefulWidget {
     this.onFilterPressed,
     this.debounceDelay = const Duration(milliseconds: 500),
     this.hintText = 'Find something',
+    this.onControllerCreated,
   });
 
   @override
@@ -46,6 +48,9 @@ class _SearchBarState extends State<SearchBar>
     super.initState();
     _controller = TextEditingController(text: widget.initialValue ?? '');
     _focusNode = FocusNode();
+    
+    // Notify parent about controller creation
+    widget.onControllerCreated?.call(_controller);
     
     // Animation controller for filter button
     _filterAnimationController = AnimationController(
@@ -92,6 +97,17 @@ class _SearchBarState extends State<SearchBar>
     // Removed auto-search functionality
     // Search will only happen on submit (Enter press)
     _debounceTimer?.cancel();
+    setState(() {}); // Rebuild to update UI
+  }
+  
+  @override
+  void didUpdateWidget(SearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update controller text if initialValue changes
+    if (widget.initialValue != oldWidget.initialValue && 
+        widget.initialValue != _controller.text) {
+      _controller.text = widget.initialValue ?? '';
+    }
   }
 
   @override
