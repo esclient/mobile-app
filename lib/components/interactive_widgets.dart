@@ -174,7 +174,7 @@ class StarRating extends StatelessWidget {
 }
 
 /// Optimized period button with const constructor
-class PeriodButton extends StatelessWidget {
+class PeriodButton extends StatefulWidget {
   final String text;
   final bool isSelected;
   final VoidCallback? onPressed;
@@ -187,37 +187,48 @@ class PeriodButton extends StatelessWidget {
   });
 
   @override
+  State<PeriodButton> createState() => _PeriodButtonState();
+}
+
+class _PeriodButtonState extends State<PeriodButton> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 54,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected
-              ? const Color(0xFF388E3C)
-              : const Color(0xFF374151),
-          foregroundColor: Colors.white,
-          side: BorderSide(
-            color: isSelected
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: ElevatedButton(
+          onPressed: widget.onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: widget.isSelected
                 ? const Color(0xFF388E3C)
-                : const Color(0xFF4B5563),
-            width: 1,
+                : const Color(0xFF374151),
+            foregroundColor: Colors.white,
+            side: _isHovered && !widget.isSelected
+                ? const BorderSide(
+                    color: Color(0xFF388E3C),
+                    width: 2,
+                  )
+                : BorderSide.none,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(27),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            elevation: 0,
+            shadowColor: Colors.transparent,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(27),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          elevation: 0,
-          shadowColor: Colors.transparent,
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontFamily: 'Roboto',
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            height: 1.50,
+          child: Text(
+            widget.text,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontFamily: 'Roboto',
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+              height: 1.50,
+            ),
           ),
         ),
       ),
@@ -226,7 +237,7 @@ class PeriodButton extends StatelessWidget {
 }
 
 /// Optimized interactive tag with const constructor
-class InteractiveTag extends StatelessWidget {
+class InteractiveTag extends StatefulWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isSelected;
@@ -239,39 +250,50 @@ class InteractiveTag extends StatelessWidget {
   });
 
   @override
+  State<InteractiveTag> createState() => _InteractiveTagState();
+}
+
+class _InteractiveTagState extends State<InteractiveTag> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 26,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected
-              ? const Color(0xFF388E3C)
-              : const Color(0xFF4B5563),
-          foregroundColor: Colors.white,
-          side: BorderSide(
-            color: isSelected
-                ? const Color(0xFF4ADE80)
-                : const Color(0xFF6B7280),
-            width: 1,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: ElevatedButton(
+          onPressed: widget.onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: widget.isSelected
+                ? const Color(0xFF388E3C)
+                : const Color(0xFF374151),
+            foregroundColor: Colors.white,
+            side: _isHovered && !widget.isSelected
+                ? const BorderSide(
+                    color: Color(0xFF388E3C),
+                    width: 2,
+                  )
+                : BorderSide.none,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(13),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(13),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.w500,
-            height: 1.17,
+          child: Text(
+            widget.text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.w500,
+              height: 1.17,
+            ),
           ),
         ),
       ),
