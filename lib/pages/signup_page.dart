@@ -38,9 +38,16 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1F2937),
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1F2937),
+        body: SafeArea(
         child: Column(
           children: [
             // Back button
@@ -87,10 +94,10 @@ class _SignUpPageState extends State<SignUpPage> {
                         _buildInputField(
                           controller: _emailController,
                           focusNode: _emailFocus,
-                          placeholder: 'Email',
+                          placeholder: 'Почта',
                           isActive: _isEmailActive,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
 
                         // Checkbox section
                         GestureDetector(
@@ -131,7 +138,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               // Text
                               Expanded(
                                 child: Text(
-                                  'I want to receive news about my modifications (such as uploads, updates, ban and deleting) and also about new version of the app',
+                                  'Я хочу получать новости о моих модах на электронную почту',
                                   style: const TextStyle(
                                     color: Color(0xFFBBBBBB),
                                     fontSize: 15,
@@ -151,10 +158,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           onTap: _isLoading ? null : _handleSignUp,
                           child: Container(
                             width: double.infinity,
-                            height: 54,
+                            height: 50,
                             decoration: BoxDecoration(
                               color: const Color(0xFF388E3C),
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
                               child: _isLoading
@@ -167,7 +174,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       ),
                                     )
                                   : const Text(
-                                      'Sign up',
+                                      'Зарегистрироваться',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white,
@@ -199,17 +206,17 @@ class _SignUpPageState extends State<SignUpPage> {
                 onTap: () => Navigator.of(context).pop(),
                 child: Container(
                   width: double.infinity,
-                  height: 54,
+                  height: 50,
                   decoration: BoxDecoration(
                     border: Border.all(
                       width: 2,
                       color: const Color(0xFF388E3C),
                     ),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Center(
                     child: Text(
-                      'Log in',
+                      'Войти',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -223,6 +230,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

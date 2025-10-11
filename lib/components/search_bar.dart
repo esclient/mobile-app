@@ -171,6 +171,9 @@ class _SearchBarState extends State<SearchBar>
                       errorBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
+                      // Remove background fill
+                      filled: false,
+                      fillColor: Colors.transparent,
                       // Remove all padding - we handle it with Row layout
                       contentPadding: EdgeInsets.zero,
                       isDense: true,

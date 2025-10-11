@@ -17,17 +17,24 @@ class AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 80,
+      height: 120,
       decoration: const BoxDecoration(
         color: Color(0xFF1F2937),
-        border: Border(
-          top: BorderSide(color: Color(0xFF374151), width: 1),
-        ),
       ),
       child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Column(
           children: [
+            Container(
+              height: 1,
+              margin: const EdgeInsets.only(bottom: 4),
+              decoration: const BoxDecoration(
+                color: Color(0xFF374151),
+              ),
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
             _buildNavItem(
               context: context,
               label: 'Главная',
@@ -81,6 +88,9 @@ class AppBottomNavBar extends StatelessWidget {
             ),
           ],
         ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -99,6 +109,7 @@ class AppBottomNavBar extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             SvgPicture.asset(
               iconPath,

@@ -148,9 +148,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
     return Container(
       height: preferredSize.height,
-      // 74.0
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      // Content area padding
+      // 74.0 + status bar padding
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: MediaQuery.of(context).padding.top + 12,
+        bottom: 12,
+      ),
       decoration: const BoxDecoration(
         color: Color(0xFF1F2937),
         border: Border(bottom: BorderSide(color: Color(0xFF374151), width: 1)),
@@ -211,5 +215,5 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(74.0); // Consistent height
+  Size get preferredSize => const Size.fromHeight(120.0); // Consistent height + space for status bar
 }

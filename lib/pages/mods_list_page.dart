@@ -92,15 +92,13 @@ class _ModsListPageState extends State<ModsListPage>
         onSettingsPressed: _showSettings,
         onNotificationPressed: _showNotifications,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildPeriodSelector(),
-            Expanded(
-              child: _buildModsList(),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildPeriodSelector(),
+          Expanded(
+            child: _buildModsList(),
+          ),
+        ],
       ),
       bottomNavigationBar: AppBottomNavBar(
         activeIndex: 0, 
@@ -376,23 +374,11 @@ class _ModsListPageState extends State<ModsListPage>
   }
   
   void _showSettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Настройки пока не реализованы'),
-        duration: Duration(seconds: 2),
-        backgroundColor: Color(0xFF388E3C),
-      ),
-    );
+    // SnackBar показывается в AppHeader
   }
   
   void _showNotifications() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Уведомления пока не реализованы'),
-        duration: Duration(seconds: 2),
-        backgroundColor: Color(0xFF388E3C),
-      ),
-    );
+    // SnackBar показывается в AppHeader
   }
 }
 
@@ -522,30 +508,33 @@ class _ModDetailsSheet extends StatelessWidget {
               Row(
                 children: [
                   StarRating(rating: mod.rating, starSize: 12),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Text(
                     mod.rating.toStringAsFixed(1),
                     style: const TextStyle(
                       color: Color(0xFFF59E0B),
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 5),
-                  Text(
-                    '(${mod.formattedRatingsCount})',
-                    style: const TextStyle(
-                      color: Color(0xFF9CA3AF),
-                      fontSize: 12,
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      '(${mod.formattedRatingsCount})',
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
                   Text(
-                    '${mod.formattedDownloadsCount} загрузок',
+                    '${mod.formattedDownloadsCount}',
                     style: const TextStyle(
                       color: Color(0xFF9CA3AF),
                       fontSize: 12,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

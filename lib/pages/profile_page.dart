@@ -26,29 +26,16 @@ class ProfilePage extends StatelessWidget { // Renamed from ImprovedProfileScree
           );
         },
         onSettingsPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Настройки профиля пока не реализованы'),
-              backgroundColor: Color(0xFF388E3C),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          // SnackBar показывается в AppHeader
         },
         onNotificationPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Уведомления пока не реализованы'),
-              backgroundColor: Color(0xFF388E3C),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          // SnackBar показывается в AppHeader
         },
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
@@ -119,9 +106,8 @@ class ProfilePage extends StatelessWidget { // Renamed from ImprovedProfileScree
                 ),
               ),
             ),
-            AppBottomNavBar(activeIndex: 2, authService: authService),
-          ],
-        ),
+          AppBottomNavBar(activeIndex: 2, authService: authService),
+        ],
       ),
     );
   }
