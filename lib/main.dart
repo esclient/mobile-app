@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'providers/comments_provider.dart';
 
 import 'model/comments.dart';
 import 'pages/mods_list_page.dart';
@@ -41,11 +42,17 @@ class MyApp extends StatelessWidget {
         Provider.value(value: serviceLocator.modsService),
         ChangeNotifierProvider.value(value: serviceLocator.authService),
         Provider.value(value: serviceLocator.commentService),
-
+        
         // State providers
         ChangeNotifierProvider<ModsProvider>(
           create: (context) => ModsProvider(serviceLocator.modsService),
           lazy: false, // Initialize immediately for better performance
+        ),
+        
+        // Add CommentsProvider here
+        ChangeNotifierProvider<CommentsProvider>(
+          create: (context) => CommentsProvider(serviceLocator.commentService),
+          lazy: true, // Load on demand when needed
         ),
       ],
       child: MaterialApp(

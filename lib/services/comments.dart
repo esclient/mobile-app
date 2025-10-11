@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../model/comments.dart';
+import 'dart:developer';
 
 const String _getCommentsQuery = r'''
   query GetComments($modId: ID!) {
@@ -41,7 +42,7 @@ class CommentService {
   Future<bool> deleteComment(String comment_id) async {
     
     try {
-      final result await _client.mutation(
+      final result = await _client.mutate(
         MutationOptions(
           document: gql(_getDeleteCommentMutation),
           variables: {'comment_id': comment_id},
@@ -55,7 +56,8 @@ class CommentService {
 
     return result.data?['deleteComment'] ?? false;
   } catch(e) {
-    print('Error deleting comment: $e');
+    log('Error deleting comment: $e');
     rethrow;
+  }
   }
 }

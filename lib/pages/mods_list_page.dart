@@ -7,6 +7,8 @@ import '../components/interactive_widgets.dart';
 import '../components/app_bottom_nav_bar.dart';
 import '../components/app_header.dart';
 import '../services/service_locator.dart';
+import '../widgets/comment_card.dart';
+import '../providers/comments_provider.dart';
 
 class ModsListPage extends StatefulWidget {
   const ModsListPage({super.key});
@@ -383,7 +385,7 @@ class _ModsListPageState extends State<ModsListPage>
 }
 
 // Separate widget for mod details to optimize performance
-class _ModDetailsSheet extends StatelessWidget {
+class _ModDetailsSheet extends StatefulWidget {
   final ModItem mod;
   final ValueChanged<String> onTagPressed;
   
@@ -391,6 +393,20 @@ class _ModDetailsSheet extends StatelessWidget {
     required this.mod,
     required this.onTagPressed,
   });
+
+  @override
+  State<_ModDetailsSheet> createState() => _ModDetailsSheetState();
+}
+
+class _ModDetailsSheetState extends State<_ModDetailsSheet> {
+  @override
+  void initState() {
+    super.initState();
+    // Load comments when sheet opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CommentsProvider>().loadComments(widget.mod.id);
+    });
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -413,41 +429,58 @@ class _ModDetailsSheet extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Описание:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text(
-                        mod.description,
-                        style: const TextStyle(
-                          color: Color(0xFFD1D5DB),
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 20),
+                    
+                    // Description section
+                    const Text(
+                      'Описание:',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
-                  if (mod.tags.isNotEmpty) ...[
-                    _buildTags(context),
+                    const SizedBox(height: 10),
+                    Text(
+                      widget.mod.description,
+                      style: const TextStyle(
+                        color: Color(0xFFD1D5DB),
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
+                    
                     const SizedBox(height: 20),
+                    
+                    // Tags section
+                    if (widget.mod.tags.isNotEmpty) ...[
+                      _buildTags(context),
+                      const SizedBox(height: 20),
+                    ],
+                    
+                    // Comments section
+                    const Text(
+                      'Комментарии:',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildCommentsSection(),
+                    
+                    const SizedBox(height: 20),
+                    _buildDownloadButton(context),
                   ],
-                  _buildDownloadButton(context),
-                ],
+                ),
               ),
             ),
           ),
@@ -456,11 +489,82 @@ class _ModDetailsSheet extends StatelessWidget {
     );
   }
   
+  Widget _buildCommentsSection() {
+    return Consumer<CommentsProvider>(
+      builder: (context, commentsProvider, child) {
+        // Show loading
+        if (commentsProvider.isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(
+                color: Color(0xFF388E3C),
+              ),
+            ),
+          );
+        }
+        
+        // Show error
+        if (commentsProvider.error != null) {
+          return Center(
+            child: Column(
+              children: [
+                Text(
+                  commentsProvider.error!,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                PeriodButton(
+                  text: 'Попробовать снова',
+                  onPressed: () {
+                    commentsProvider.loadComments(widget.mod.id);
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+        
+        // Show empty state
+        if (commentsProvider.comments.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'Нет комментариев',
+                style: TextStyle(
+                  color: Color(0xFF9CA3AF),
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          );
+        }
+        
+        // Show comments list
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: commentsProvider.comments.length,
+          itemBuilder: (context, index) {
+            return CommentCard(
+              comment: commentsProvider.comments[index],
+            );
+          },
+        );
+      },
+    );
+  }
+  
   Widget _buildHeader() {
     return Row(
       children: [
         Hero(
-          tag: 'mod_image_${mod.id}',
+          tag: 'mod_image_${widget.mod.id}',
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Image.asset(
@@ -489,7 +593,7 @@ class _ModDetailsSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                mod.title,
+                widget.mod.title,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -498,7 +602,7 @@ class _ModDetailsSheet extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                'Автор: ${mod.authorId}',
+                'Автор: ${widget.mod.authorId}',
                 style: const TextStyle(
                   color: Color(0xFF9CA3AF),
                   fontSize: 14,
@@ -507,10 +611,10 @@ class _ModDetailsSheet extends StatelessWidget {
               const SizedBox(height: 5),
               Row(
                 children: [
-                  StarRating(rating: mod.rating, starSize: 12),
+                  StarRating(rating: widget.mod.rating, starSize: 12),
                   const SizedBox(width: 4),
                   Text(
-                    mod.rating.toStringAsFixed(1),
+                    widget.mod.rating.toStringAsFixed(1),
                     style: const TextStyle(
                       color: Color(0xFFF59E0B),
                       fontSize: 14,
@@ -520,7 +624,7 @@ class _ModDetailsSheet extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      '(${mod.formattedRatingsCount})',
+                      '(${widget.mod.formattedRatingsCount})',
                       style: const TextStyle(
                         color: Color(0xFF9CA3AF),
                         fontSize: 12,
@@ -529,7 +633,7 @@ class _ModDetailsSheet extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${mod.formattedDownloadsCount}',
+                    '${widget.mod.formattedDownloadsCount}',
                     style: const TextStyle(
                       color: Color(0xFF9CA3AF),
                       fontSize: 12,
@@ -549,12 +653,12 @@ class _ModDetailsSheet extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: mod.tags.map((tag) {
+      children: widget.mod.tags.map((tag) {
         return InteractiveTag(
           text: tag,
           onPressed: () {
             Navigator.of(context).pop();
-            onTagPressed('#$tag');
+            widget.onTagPressed('#$tag');
           },
         );
       }).toList(),
@@ -572,7 +676,7 @@ class _ModDetailsSheet extends StatelessWidget {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Скачивание "${mod.title}" началось'),
+              content: Text('Скачивание "${widget.mod.title}" началось'),
               backgroundColor: const Color(0xFF388E3C),
               duration: const Duration(seconds: 2),
             ),

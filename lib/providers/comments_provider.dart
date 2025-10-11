@@ -4,18 +4,18 @@ import '../services/comments.dart';
 import 'dart:developer';
 
 class CommentsProvider extends ChangeNotifier {
-    final CommentsService _commentsService;
+    final CommentService _commentsService;
 
-    CommentsProvider(this._commentsService) {}
+    CommentsProvider(this._commentsService);
 
     // State variables
-    List<CommentItem> _comments = [];
+    List<Comment> _comments = [];
     bool _isLoading = false;
     String? _error;
     String? _currentModId;
 
     // Getters
-    List<CommentItem> get comments => _comments;
+    List<Comment> get comments => _comments;
     bool get isLoading => _isLoading;
     String? get error => _error;
     String? get currentModId => _currentModId;
@@ -32,12 +32,41 @@ class CommentsProvider extends ChangeNotifier {
             _comments = newComments;
             _currentModId = modId;
             
+            log('Successfully loaded ${newComments.length} comments');
             notifyListeners();
         } catch(e) {
+            log('Error loading comments: $e');
             _setError('Failed to load comments: ${e.toString()}');
         } finally {
             _setLoading(false);
         }
+    }
+
+    Future<void> deleteComment(String comment_id) async{
+        if (_isLoading) return;
+
+        _setLoading(true);
+        _error = null;
+
+        try{
+            final success = await _commentsService.deleteComment(comment_id);
+            log('Attempting to delete comment: $comment_id');
+            if(success)
+            {
+                _comments.removeWhere((comment) => comment.id == comment_id);
+                log('Successfully deleted comment: $comment_id');
+                notifyListeners();
+            }
+            else{
+                throw Exception("Failed to delete a comment");
+            }
+
+        }catch(e){
+            _setError('Failed to delete a comment: ${e.toString()}');
+        }finally{
+            _setLoading(false);
+        }
+
     }
     
     void _setLoading(bool loading) {

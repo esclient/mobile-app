@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-// import 'improved_search_bar.dart'; // Unused import removed
 
 /// Optimized search input with debouncing
 class OptimizedSearchInput extends StatefulWidget {
