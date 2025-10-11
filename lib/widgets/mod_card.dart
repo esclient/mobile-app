@@ -191,7 +191,7 @@ class ModCard extends StatelessWidget {
               fontWeight: FontWeight.w400,
               height: 1.62,
             ),
-            maxLines: 3,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),

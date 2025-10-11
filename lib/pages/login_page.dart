@@ -49,9 +49,16 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1F2937),
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1F2937),
+        body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
@@ -106,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                           _buildInputField(
                             controller: _usernameController,
                             focusNode: _usernameFocus,
-                            placeholder: 'Username or email',
+                            placeholder: 'Логин или почта',
                             isActive: _isUsernameActive,
                           ),
                           const SizedBox(height: 16),
@@ -115,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                           _buildInputField(
                             controller: _passwordController,
                             focusNode: _passwordFocus,
-                            placeholder: 'Password',
+                            placeholder: 'Пароль',
                             isActive: _isPasswordActive,
                             isPassword: true,
                           ),
@@ -140,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                           );
                         },
                         child: const Text(
-                          'Forgot password?',
+                          'Забыли пароль?',
                           style: TextStyle(
                             color: Color(0xFF388E3C),
                             fontSize: 16,
@@ -163,6 +170,7 @@ class _LoginPageState extends State<LoginPage> {
             );
           },
         ),
+      ),
       ),
     );
   }
@@ -272,7 +280,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 )
               : const Text(
-                  'Log in',
+                  'Войти',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -305,7 +313,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: const Center(
           child: Text(
-            'Sign up',
+            'Зарегистрироваться',
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
