@@ -402,9 +402,18 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
   @override
   void initState() {
     super.initState();
+    print('🔵 MOD DETAILS SHEET OPENED FOR MOD: ${widget.mod.id}');
     // Load comments when sheet opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CommentsProvider>().loadComments(widget.mod.id);
+      print('🔵 Post frame callback executed');
+      try {
+        final provider = context.read<CommentsProvider>();
+        print('🔵 Provider found: $provider');
+        print('🔵 CALLING loadComments for mod: ${widget.mod.id}');
+        provider.loadComments(widget.mod.id);
+      } catch (e) {
+        print('🔴 ERROR getting provider: $e');
+      }
     });
   }
   
