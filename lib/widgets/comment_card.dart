@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../model/comments.dart';
-import '../components/interactive_widgets.dart';
 
 class CommentCard extends StatelessWidget{
     final Comment comment;
@@ -30,26 +28,32 @@ class CommentCard extends StatelessWidget{
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            // Top row: Author and delete button
+            // Top row: Avatar + author name (no label, no delete)
             Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-                Text(
-                'Author: 123', // false value
-                style: const TextStyle(
+                Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF374151), width: 1),
+                ),
+                child: ClipOval(
+                    child: _buildAvatar(comment.authorId),
+                ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                child: Text(
+                    comment.authorId,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
                     color: Color(0xFF9CA3AF),
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    ),
                 ),
-                ),
-                IconButton(
-                icon: const Icon(Icons.delete_outline),
-                color: Colors.red,
-                iconSize: 20,
-                onPressed: () {
-                    // TODO: Add delete functionality
-                    print('Delete comment: ${comment.id}');
-                },
                 ),
             ],
             ),
@@ -67,6 +71,18 @@ class CommentCard extends StatelessWidget{
         ],
         ),
     );
+    }
+
+    Widget _buildAvatar(String authorId) {
+        // Placeholder avatar; if you have user avatars URL, replace with CachedNetworkImage
+        return Container(
+            color: const Color(0xFF1F2937),
+            child: const Icon(
+                Icons.person,
+                size: 16,
+                color: Color(0xFF9CA3AF),
+            ),
+        );
     }
 
 }

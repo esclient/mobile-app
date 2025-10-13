@@ -132,37 +132,85 @@ class _CommentsListState extends State<CommentsList>
 
         final comments = snap.data!;
 
+        // Wrap content with a header that shows title + count badge
+        final header = Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              const Text(
+                'Комментарии',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF374151),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  comments.length.toString(),
+                  style: const TextStyle(
+                    color: Color(0xFFE5E7EB),
+                    fontSize: 12,
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
         if (comments.isEmpty) {
-          return _buildEmptyWidget();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              header,
+              Expanded(child: _buildEmptyWidget()),
+            ],
+          );
         }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            setState(() {
-              _loadComments();
-            });
-          },
-          color: const Color(0xFF388E3C),
-          backgroundColor: const Color(0xFF374151),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(AppSizes.paddingMedium),
-            itemCount: comments.length,
-            // Optimizations for better performance
-            itemExtent: null,
-            // Let items size themselves
-            cacheExtent: 500,
-            addAutomaticKeepAlives: false,
-            addRepaintBoundaries: true,
-            itemBuilder: (context, index) {
-              final comment = comments[index];
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: index < comments.length - 1 ? AppSizes.spacing : 0,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            header,
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  setState(() {
+                    _loadComments();
+                  });
+                },
+                color: const Color(0xFF388E3C),
+                backgroundColor: const Color(0xFF374151),
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium, vertical: 0),
+                  itemCount: comments.length,
+                  itemExtent: null,
+                  cacheExtent: 500,
+                  addAutomaticKeepAlives: false,
+                  addRepaintBoundaries: true,
+                  itemBuilder: (context, index) {
+                    final comment = comments[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index < comments.length - 1 ? AppSizes.spacing : 0,
+                      ),
+                      child: _buildCommentCard(comment),
+                    );
+                  },
                 ),
-                child: _buildCommentCard(comment),
-              );
-            },
-          ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -181,6 +229,54 @@ class _CommentsListState extends State<CommentsList>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF374151), width: 1),
+                  ),
+                  child: const CircleAvatar(
+                    backgroundColor: Color(0xFF1F2937),
+                    child: Icon(Icons.person, size: 16, color: Color(0xFF9CA3AF)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    comment.authorId,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF9CA3AF),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.access_time,
+                      size: 16,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatDate(comment.createdAt),
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSizes.spacing),
             Text(
               comment.text,
               style: const TextStyle(
@@ -188,38 +284,6 @@ class _CommentsListState extends State<CommentsList>
                 fontSize: 14,
                 height: 1.5,
               ),
-            ),
-            const SizedBox(height: AppSizes.spacing),
-            Row(
-              children: [
-                const Icon(
-                  Icons.person_outline,
-                  size: 16,
-                  color: Color(0xFF9CA3AF),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  comment.authorId,
-                  style: const TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: Color(0xFF9CA3AF),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _formatDate(comment.createdAt),
-                  style: const TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
             ),
           ],
         ),

@@ -438,16 +438,7 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                     _buildHeader(),
                     const SizedBox(height: 20),
                     
-                    // Description section
-                    const Text(
-                      'Описание:',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+                    // Description section (label removed)
                     Text(
                       widget.mod.description,
                       style: const TextStyle(
@@ -465,15 +456,8 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                       const SizedBox(height: 20),
                     ],
                     
-                    // Comments section
-                    const Text(
-                      'Комментарии:',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    // Comments section header with count badge
+                    _buildCommentsHeader(),
                     const SizedBox(height: 10),
                     _buildCommentsSection(),
                     
@@ -559,6 +543,43 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
       },
     );
   }
+
+  Widget _buildCommentsHeader() {
+    return Consumer<CommentsProvider>(
+      builder: (context, commentsProvider, child) {
+        final count = commentsProvider.comments.length;
+        return Row(
+          children: [
+            const Text(
+              'Комментарии',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF374151),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                count.toString(),
+                style: const TextStyle(
+                  color: Color(0xFFE5E7EB),
+                  fontSize: 12,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
   
   Widget _buildHeader() {
     return Row(
@@ -601,12 +622,34 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                 ),
               ),
               const SizedBox(height: 5),
-              Text(
-                'Автор: ${widget.mod.authorId}',
-                style: const TextStyle(
-                  color: Color(0xFF9CA3AF),
-                  fontSize: 14,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF374151), width: 1),
+                    ),
+                    child: const CircleAvatar(
+                      backgroundColor: Color(0xFF1F2937),
+                      child: Icon(Icons.person, size: 16, color: Color(0xFF9CA3AF)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.mod.authorId,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 5),
               Row(
@@ -632,13 +675,24 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Text(
-                    '${widget.mod.formattedDownloadsCount}',
-                    style: const TextStyle(
-                      color: Color(0xFF9CA3AF),
-                      fontSize: 12,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.download_rounded,
+                        size: 14,
+                        color: Color(0xFF9CA3AF),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.mod.formattedDownloadsCount,
+                        style: const TextStyle(
+                          color: Color(0xFF9CA3AF),
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ],
               ),
