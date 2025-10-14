@@ -3,18 +3,23 @@ class Comment {
   final String authorId;
   final String text;
   final int createdAt;
+  final int? editedAt; 
 
   Comment({
     required this.id,
     required this.authorId,
     required this.text,
     required this.createdAt,
+    this.editedAt,
   });
 
-  factory Comment.fromJson(Map<String, dynamic> json) => Comment(
-    id: json['id'],
-    authorId: json['author_id'],
-    text: json['text'],
-    createdAt: json['created_at'],
-  );
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      id: json['id'].toString(),
+      authorId: json['author_id'].toString(),
+      text: json['text'] as String,
+      createdAt: json['created_at'] as int,
+      editedAt: json['edited_at'] as int?,
+    );
+  }
 }

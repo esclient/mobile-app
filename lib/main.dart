@@ -25,6 +25,12 @@ Future<void> main() async {
   final serviceLocator = ServiceLocator();
   await serviceLocator.initialize();
 
+
+  // TEMPORARY: Auto-login test user for testing comments
+  // TODO: Remove this when real authentication is implemented
+  serviceLocator.authService.login('test@example.com', userId: '999');
+
+
   runApp(MyApp(serviceLocator: serviceLocator));
 }
 
@@ -219,6 +225,7 @@ class _CommentsListState extends State<CommentsList>
                       ),
                       child: CommentCard(
                         comment: comment,
+                        currentUserId: ServiceLocator().authService.currentUserId,
                         onTap: () {
                           // Handle comment tap if needed
                         },

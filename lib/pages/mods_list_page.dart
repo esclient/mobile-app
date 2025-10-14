@@ -9,6 +9,7 @@ import '../components/app_header.dart';
 import '../services/service_locator.dart';
 import '../widgets/comment_card.dart';
 import '../providers/comments_provider.dart';
+import '../widgets/comment_input_widget.dart';
 
 class ModsListPage extends StatefulWidget {
   const ModsListPage({super.key});
@@ -446,8 +447,6 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                   children: [
                     _buildHeader(),
                     const SizedBox(height: 20),
-                    
-                    // Description section (label removed)
                     Text(
                       widget.mod.description,
                       style: const TextStyle(
@@ -456,20 +455,14 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                         height: 1.5,
                       ),
                     ),
-                    
                     const SizedBox(height: 20),
-                    
-                    // Tags section
                     if (widget.mod.tags.isNotEmpty) ...[
                       _buildTags(context),
                       const SizedBox(height: 20),
                     ],
-                    
-                    // Comments section header with count badge
                     _buildCommentsHeader(),
                     const SizedBox(height: 10),
                     _buildCommentsSection(),
-                    
                     const SizedBox(height: 20),
                     _buildDownloadButton(context),
                   ],
@@ -477,6 +470,8 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
               ),
             ),
           ),
+          // Add the comment input at the bottom
+          CommentInputWidget(modId: widget.mod.id),
         ],
       ),
     );
@@ -539,13 +534,15 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
         }
         
         // Show comments list
-        return ListView.builder(
+         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: commentsProvider.comments.length,
           itemBuilder: (context, index) {
+            final authService = ServiceLocator().authService;
             return CommentCard(
               comment: commentsProvider.comments[index],
+              currentUserId: authService.currentUserId,
             );
           },
         );

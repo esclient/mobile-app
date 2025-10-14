@@ -15,10 +15,26 @@ const String _getCommentsQuery = r'''
   }
 ''';
 
-const String _getDeleteCommentMutation = r'''
+const String _createCommentMutation = r'''
+  mutation CreateComment($mod_id: ID!, $author_id: ID!, $text: String!) {
+    comment {
+      createComment(input: { mod_id: $mod_id, author_id: $author_id, text: $text })
+    }
+  }
+''';
+
+const String _deleteCommentMutation = r'''
   mutation DeleteComment($comment_id: ID!) {
     comment {
       deleteComment(input: { comment_id: $comment_id })
+    }
+  }
+''';
+
+const String _editCommentMutation = r'''
+  mutation EditComment($comment_id: ID!, $text: String!) {
+    comment {
+      editComment(input: { comment_id: $comment_id, text: $text })
     }
   }
 ''';
@@ -84,33 +100,109 @@ class CommentService {
     }
   }
 
-  Future<bool> deleteComment(String commentId) async {
+  Future<String> createComment({
+    required String modId,
+    required String authorId,
+    required String text,
+  }) async {
     try {
+      print('🔵 Creating comment for mod: $modId by author: $authorId');
+      
       final result = await _client.mutate(
         MutationOptions(
-          document: gql(_getDeleteCommentMutation),
+          document: gql(_createCommentMutation),
+          variables: {
+            'mod_id': modId,
+            'author_id': authorId,
+            'text': text,
+          },
+        ),
+      );
+
+      print('🔵 Response received');
+      print('🔵 Has exception: ${result.hasException}');
+      print('🔵 Data: ${result.data}');
+    
+      if (result.hasException) {
+        print('🔴 Exception: ${result.exception}');
+        throw result.exception!;
+      }
+      
+      final commentId = result.data?['comment']?['createComment'] as String? ?? '';
+      print('🟢 Successfully created comment with ID: $commentId');
+      return commentId;
+    } catch(e) {
+      dev.log('Error creating comment: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> deleteComment(String commentId) async {
+    try {
+      print('🔵 Deleting comment: $commentId');
+      final result = await _client.mutate(
+        MutationOptions(
+          document: gql(_deleteCommentMutation),
           variables: {'comment_id': commentId},
         ),
       );
-   
+
+      print('🔵 Response received');
+      print('🔵 Has exception: ${result.hasException}');
+      print('🔵 Data: ${result.data}');
+    
       if (result.hasException) {
+        print('🔴 Exception: ${result.exception}');
         throw result.exception!;
       }
-     
-      return result.data?['comment']?['deleteComment'] ?? false;
+      
+      final success = result.data?['comment']?['deleteComment'] ?? false;
+      print('🟢 Successfully deleted comment: $success');
+      return success;
     } catch(e) {
       dev.log('Error deleting comment: $e');
       rethrow;
     }
   }
 
+  Future<bool> editComment({
+    required String commentId,
+    required String text,
+  }) async {
+    try {
+      print('🔵 Editing comment: $commentId');
+      final result = await _client.mutate(
+        MutationOptions(
+          document: gql(_editCommentMutation),
+          variables: {
+            'comment_id': commentId,
+            'text': text,
+          },
+        ),
+      );
+
+      print('🔵 Response received');
+      print('🔵 Has exception: ${result.hasException}');
+      print('🔵 Data: ${result.data}');
+    
+      if (result.hasException) {
+        print('🔴 Exception: ${result.exception}');
+        throw result.exception!;
+      }
+      
+      final success = result.data?['comment']?['editComment'] ?? false;
+      print('🟢 Successfully edited comment: $success');
+      return success;
+    } catch(e) {
+      dev.log('Error editing comment: $e');
+      rethrow;
+    }
+  }
+  
   /// Check if mod ID belongs to a fallback mod
   bool _isFallbackMod(String modId) {
     return modId.startsWith('fallback_') || 
-           modId.startsWith('-') ||
-           modId == '1' || 
-           modId == '2' || 
-           modId == '3';
+           modId.startsWith('-');
   }
 
   /// Check if the exception is a validation error (not a network error)

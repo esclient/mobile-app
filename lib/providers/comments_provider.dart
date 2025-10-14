@@ -74,4 +74,108 @@ class CommentsProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> createComment({
+    required String modId,
+    required String authorId,
+    required String text,
+  }) async {
+    if (_isLoading) return false;
+    
+    // Validate input
+    if (text.trim().isEmpty) {
+      _error = 'Комментарий не может быть пустым';
+      notifyListeners();
+      return false;
+    }
+   
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
+    try {
+      print('🔵 CommentsProvider: Creating comment for mod $modId');
+      
+      // Call service to create comment
+      final commentId = await _commentsService.createComment(
+        modId: modId,
+        authorId: authorId,
+        text: text,
+      );
+      
+      // Create new comment object and add to list
+      final newComment = Comment(
+        id: commentId,
+        authorId: authorId,
+        text: text,
+        createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      );
+      
+      // Add to beginning of list (newest first)
+      _comments.insert(0, newComment);
+      print('🟢 Comment created successfully with ID: $commentId');
+      
+      return true;
+    } catch (e) {
+      print('🔴 Error creating comment: $e');
+      _error = 'Не удалось создать комментарий: ${e.toString()}';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> editComment({
+    required String commentId,
+    required String text,
+  }) async {
+    if (_isLoading) return false;
+    
+    // Validate input
+    if (text.trim().isEmpty) {
+      _error = 'Комментарий не может быть пустым';
+      notifyListeners();
+      return false;
+    }
+  
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
+    try {
+      print('🔵 CommentsProvider: Editing comment $commentId');
+      
+      // Call service to edit comment
+      final success = await _commentsService.editComment(
+        commentId: commentId,
+        text: text,
+      );
+      
+      if (success) {
+        // Update the comment in the local list
+        final index = _comments.indexWhere((c) => c.id == commentId);
+        if (index != -1) {
+          // Create updated comment with new text and edited timestamp
+          _comments[index] = Comment(
+            id: _comments[index].id,
+            authorId: _comments[index].authorId,
+            text: text,
+            createdAt: _comments[index].createdAt,
+            editedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          );
+        }
+        print('🟢 Comment edited successfully');
+      }
+      
+      return success;
+    } catch (e) {
+      print('🔴 Error editing comment: $e');
+      _error = 'Не удалось изменить комментарий: ${e.toString()}';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
