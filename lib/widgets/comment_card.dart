@@ -37,48 +37,24 @@ class _CommentCardState extends State<CommentCard> {
     _editFocusNode.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     const tempTestUserId = '999';
     
     final isOwner = (widget.currentUserId != null && widget.currentUserId == widget.comment.authorId) ||
                     widget.comment.authorId == tempTestUserId;
-    
-    print('🔍 Comment: ${widget.comment.id}, Author: ${widget.comment.authorId}, CurrentUser: ${widget.currentUserId}, IsOwner: $isOwner, IsEditing: $_isEditing');
-    
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF1F2937),
-            const Color(0xFF1A2332),
-          ],
-        ),
+        color: const Color(0xFF181F2A),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isOwner 
-            ? const Color(0xFF3B82F6).withOpacity(0.3)
-            : const Color(0xFF374151).withOpacity(0.3),
-          width: 1.5,
+          color: const Color(0xFF374151),
+          width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-          if (isOwner)
-            BoxShadow(
-              color: const Color(0xFF3B82F6).withOpacity(0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 0),
-            ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -92,27 +68,13 @@ class _CommentCardState extends State<CommentCard> {
                   height: 36,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF3B82F6).withOpacity(0.6),
-                        const Color(0xFF2563EB).withOpacity(0.6),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF3B82F6).withOpacity(0.3),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      ),
-                    ],
+                    color: const Color(0xFF1F2937),
                   ),
                   child: Center(
                     child: Icon(
                       Icons.person_rounded,
                       size: 20,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withOpacity(0.7),
                     ),
                   ),
                 ),
@@ -126,7 +88,7 @@ class _CommentCardState extends State<CommentCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Color(0xFFE5E7EB),
+                          color: Color(0xFF9CA3AF),
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.3,
@@ -137,17 +99,17 @@ class _CommentCardState extends State<CommentCard> {
                           margin: const EdgeInsets.only(top: 2),
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withOpacity(0.2),
+                            color: const Color(0xFF1F2937),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
-                              color: const Color(0xFF3B82F6).withOpacity(0.4),
+                              color: const Color(0xFF374151),
                               width: 1,
                             ),
                           ),
                           child: const Text(
                             'Вы',
                             style: TextStyle(
-                              color: Color(0xFF60A5FA),
+                              color: Color(0xFF9CA3AF),
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.5,
@@ -161,9 +123,7 @@ class _CommentCardState extends State<CommentCard> {
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.edit_rounded,
-                    color: const Color(0xFF3B82F6),
                     onPressed: () {
-                      print('🔵 Edit button pressed for comment ${widget.comment.id}');
                       setState(() {
                         _isEditing = true;
                       });
@@ -175,24 +135,18 @@ class _CommentCardState extends State<CommentCard> {
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.delete_rounded,
-                    color: const Color(0xFFEF4444),
-                    onPressed: () {
-                      print('🔴 Delete button pressed for comment ${widget.comment.id}');
-                      _showDeleteDialog(context);
-                    },
+                    onPressed: () => _showDeleteDialog(context),
                   ),
                 ],
                 if (_isEditing) ...[
                   const SizedBox(width: 8),
-                  _buildEditButton(
+                  _buildActionButton(
                     icon: Icons.check_rounded,
-                    color: const Color(0xFF10B981),
                     onPressed: () => _saveEdit(context),
                   ),
                   const SizedBox(width: 10),
-                  _buildEditButton(
+                  _buildActionButton(
                     icon: Icons.close_rounded,
-                    color: const Color(0xFF6B7280),
                     onPressed: () {
                       setState(() {
                         _isEditing = false;
@@ -209,19 +163,12 @@ class _CommentCardState extends State<CommentCard> {
             if (_isEditing)
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF111827),
+                  color: const Color(0xFF1F2937),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: const Color(0xFF3B82F6).withOpacity(0.5),
-                    width: 2,
+                    color: const Color(0xFF374151),
+                    width: 1,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF3B82F6).withOpacity(0.1),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    ),
-                  ],
                 ),
                 child: TextField(
                   controller: _editController,
@@ -270,7 +217,7 @@ class _CommentCardState extends State<CommentCard> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF374151).withOpacity(0.5),
+                            color: const Color(0xFF1F2937),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Row(
@@ -307,7 +254,6 @@ class _CommentCardState extends State<CommentCard> {
   
   Widget _buildActionButton({
     required IconData icon,
-    required Color color,
     required VoidCallback onPressed,
   }) {
     return Material(
@@ -318,43 +264,17 @@ class _CommentCardState extends State<CommentCard> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: const Color(0xFF1F2937),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: color.withOpacity(0.3),
+              color: const Color(0xFF374151),
               width: 1,
             ),
           ),
           child: Icon(
             icon,
             size: 18,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: color,
+            color: const Color(0xFF9CA3AF),
           ),
         ),
       ),
@@ -365,11 +285,11 @@ class _CommentCardState extends State<CommentCard> {
     final newText = _editController.text.trim();
     
     if (newText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Комментарий не может быть пустым'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
+      _showSnackBar(
+        context: context,
+        message: 'Комментарий не может быть пустым',
+        icon: Icons.warning_rounded,
+        color: const Color(0xFFEF4444),
       );
       return;
     }
@@ -394,116 +314,27 @@ class _CommentCardState extends State<CommentCard> {
           _isEditing = false;
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Комментарий успешно изменён',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 2),
-          ),
+        _showSnackBar(
+          context: context,
+          message: 'Комментарий успешно изменён',
+          icon: Icons.check_circle_rounded,
+          color: const Color(0xFF388E3C),
         );
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.error_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Ошибка: ${commentsProvider.error ?? "Не удалось изменить комментарий"}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-          ),
+        _showSnackBar(
+          context: context,
+          message: commentsProvider.error ?? 'Не удалось изменить комментарий',
+          icon: Icons.error_rounded,
+          color: const Color(0xFFEF4444),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.error_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Ошибка: ${e.toString()}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-          ),
+        _showSnackBar(
+          context: context,
+          message: 'Ошибка: ${e.toString()}',
+          icon: Icons.error_rounded,
+          color: const Color(0xFFEF4444),
         );
       }
     }
@@ -517,10 +348,10 @@ class _CommentCardState extends State<CommentCard> {
         return AlertDialog(
           backgroundColor: const Color(0xFF1F2937),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-              color: const Color(0xFFEF4444).withOpacity(0.3),
-              width: 1.5,
+              color: const Color(0xFF374151),
+              width: 1,
             ),
           ),
           title: Row(
@@ -528,7 +359,7 @@ class _CommentCardState extends State<CommentCard> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.2),
+                  color: const Color(0xFF181F2A),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -553,7 +384,7 @@ class _CommentCardState extends State<CommentCard> {
           content: const Text(
             'Это действие нельзя отменить. Комментарий будет удалён навсегда.',
             style: TextStyle(
-              color: Color(0xFFD1D5DB),
+              color: Color(0xFF9CA3AF),
               fontSize: 14,
               height: 1.5,
             ),
@@ -614,82 +445,67 @@ class _CommentCardState extends State<CommentCard> {
       await commentsProvider.deleteComment(widget.comment.id);
       
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Комментарий удалён',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 2),
-          ),
+        _showSnackBar(
+          context: context,
+          message: 'Комментарий удалён',
+          icon: Icons.check_circle_rounded,
+          color: const Color(0xFF388E3C),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.error_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Ошибка: ${e.toString()}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 3),
-          ),
+        _showSnackBar(
+          context: context,
+          message: 'Ошибка: ${e.toString()}',
+          icon: Icons.error_rounded,
+          color: const Color(0xFFEF4444),
         );
       }
     }
+  }
+  
+  void _showSnackBar({
+    required BuildContext context,
+    required String message,
+    required IconData icon,
+    required Color color,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 }

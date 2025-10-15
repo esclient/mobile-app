@@ -3,13 +3,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'providers/comments_provider.dart';
 
-import 'model/comments.dart';
 import 'pages/mods_list_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/search_test_page.dart';
 import 'providers/mods_provider.dart';
 import 'services/auth_service.dart';
-import 'services/comments.dart';
 import 'services/service_locator.dart';
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';

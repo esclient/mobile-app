@@ -88,7 +88,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
           _showSnackBar(
             message: 'Комментарий успешно добавлен',
             icon: Icons.check_circle_rounded,
-            color: const Color(0xFF10B981),
+            color: const Color(0xFF388E3C),
           );
         }
       } else {
@@ -161,29 +161,15 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
     
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF1F2937).withOpacity(0.95),
-            const Color(0xFF1F2937),
-          ],
-        ),
+        color: const Color(0xFF1F2937),
         border: Border(
           top: BorderSide(
             color: _isFocused 
-              ? const Color(0xFF3B82F6).withOpacity(0.5)
+              ? const Color(0xFF374151)
               : const Color(0xFF374151).withOpacity(0.5),
             width: _isFocused ? 2 : 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 12,
-            offset: const Offset(0, -4),
-          ),
-        ],
       ),
       child: SafeArea(
         top: false,
@@ -199,14 +185,6 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          if (_isFocused)
-                            BoxShadow(
-                              color: const Color(0xFF3B82F6).withOpacity(0.2),
-                              blurRadius: 12,
-                              spreadRadius: 2,
-                            ),
-                        ],
                       ),
                       child: TextField(
                         controller: _controller,
@@ -232,8 +210,8 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                           ),
                           filled: true,
                           fillColor: _isFocused 
-                            ? const Color(0xFF374151)
-                            : const Color(0xFF374151).withOpacity(0.8),
+                            ? const Color(0xFF181F2A)
+                            : const Color(0xFF181F2A).withOpacity(0.8),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
                             borderSide: BorderSide.none,
@@ -241,14 +219,14 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
                             borderSide: BorderSide(
-                              color: const Color(0xFF4B5563).withOpacity(0.3),
+                              color: const Color(0xFF374151).withOpacity(0.3),
                               width: 1,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
                             borderSide: BorderSide(
-                              color: const Color(0xFF3B82F6).withOpacity(0.6),
+                              color: const Color(0xFF374151).withOpacity(0.6),
                               width: 2,
                             ),
                           ),
@@ -275,27 +253,10 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          gradient: _isSending
-                              ? null
-                              : LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    const Color(0xFF10B981),
-                                    const Color(0xFF059669),
-                                  ],
-                                ),
-                          color: _isSending ? const Color(0xFF374151) : null,
+                          color: _isSending 
+                              ? const Color(0xFF181F2A)
+                              : const Color(0xFF388E3C),
                           shape: BoxShape.circle,
-                          boxShadow: _isSending
-                              ? null
-                              : [
-                                  BoxShadow(
-                                    color: const Color(0xFF10B981).withOpacity(0.4),
-                                    blurRadius: 12,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
                         ),
                         child: _isSending
                             ? Padding(
@@ -331,14 +292,14 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                             ? const Color(0xFFEF4444).withOpacity(0.2)
                             : isNearLimit
                                 ? const Color(0xFFF59E0B).withOpacity(0.2)
-                                : const Color(0xFF374151).withOpacity(0.5),
+                                : const Color(0xFF181F2A).withOpacity(0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isAtLimit
                               ? const Color(0xFFEF4444).withOpacity(0.4)
                               : isNearLimit
                                   ? const Color(0xFFF59E0B).withOpacity(0.4)
-                                  : const Color(0xFF4B5563).withOpacity(0.3),
+                                  : const Color(0xFF374151).withOpacity(0.3),
                           width: 1,
                         ),
                       ),
