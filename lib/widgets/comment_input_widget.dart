@@ -219,22 +219,18 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
                             borderSide: BorderSide(
-                              color: const Color(0xFF374151).withOpacity(0.3),
+                              color: Color(0xFF374151),
                               width: 1,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
                             borderSide: BorderSide(
-                              color: const Color(0xFF374151).withOpacity(0.6),
-                              width: 2,
+                              color: _isFocused ? Color(0xFF388E3C) : Color(0xFF374151),
+                              width: 1.5,
                             ),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          counterText: '',
+                          counterText: '', // <-- удаляет отображение рамки и чисел под полем
                         ),
                       ),
                     ),
@@ -343,3 +339,4 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
     );
   }
 }
+

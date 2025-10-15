@@ -403,7 +403,7 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
   @override
   void initState() {
     super.initState();
-    print('🔵 MOD DETAILS SHEET OPENED FOR MOD: ${widget.mod.id}');
+    print('🔵 MOD DETAILS SHEET OPENED FOR MOD:  [38;5;27m${widget.mod.id} [0m');
     // Load comments when sheet opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       print('🔵 Post frame callback executed');
@@ -420,59 +420,68 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
   
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: Color(0xFF1F2937),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          // Handle bar
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF9CA3AF),
-              borderRadius: BorderRadius.circular(2),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1F2937),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF9CA3AF),
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
+            Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 20),
-                    Text(
-                      widget.mod.description,
-                      style: const TextStyle(
-                        color: Color(0xFFD1D5DB),
-                        fontSize: 14,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    if (widget.mod.tags.isNotEmpty) ...[
-                      _buildTags(context),
+                child: SingleChildScrollView(
+                  // Important: reverse = true is NOT needed here for bottom alignment
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
                       const SizedBox(height: 20),
+                      Text(
+                        widget.mod.description,
+                        style: const TextStyle(
+                          color: Color(0xFFD1D5DB),
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (widget.mod.tags.isNotEmpty) ...[
+                        _buildTags(context),
+                        const SizedBox(height: 20),
+                      ],
+                      _buildDownloadButton(context),
+                      const SizedBox(height: 20),
+                      _buildCommentsHeader(),
+                      const SizedBox(height: 10),
+                      _buildCommentsSection(),
+                      const SizedBox(height: 12), // Было 80
                     ],
-                    _buildCommentsHeader(),
-                    const SizedBox(height: 10),
-                    _buildCommentsSection(),
-                    const SizedBox(height: 20),
-                    _buildDownloadButton(context),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-          // Add the comment input at the bottom
-          CommentInputWidget(modId: widget.mod.id),
-        ],
+          ],
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: CommentInputWidget(modId: widget.mod.id),
       ),
     );
   }

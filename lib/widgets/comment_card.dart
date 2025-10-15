@@ -123,6 +123,7 @@ class _CommentCardState extends State<CommentCard> {
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.edit_rounded,
+                    iconColor: const Color(0xFF3B82F6),
                     onPressed: () {
                       setState(() {
                         _isEditing = true;
@@ -135,6 +136,7 @@ class _CommentCardState extends State<CommentCard> {
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.delete_rounded,
+                    iconColor: const Color(0xFFEF4444),
                     onPressed: () => _showDeleteDialog(context),
                   ),
                 ],
@@ -142,11 +144,13 @@ class _CommentCardState extends State<CommentCard> {
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.check_rounded,
+                    iconColor: const Color(0xFF388E3C),
                     onPressed: () => _saveEdit(context),
                   ),
                   const SizedBox(width: 10),
                   _buildActionButton(
                     icon: Icons.close_rounded,
+                    iconColor: const Color(0xFFEF4444),
                     onPressed: () {
                       setState(() {
                         _isEditing = false;
@@ -161,41 +165,115 @@ class _CommentCardState extends State<CommentCard> {
             const SizedBox(height: 14),
             
             if (_isEditing)
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1F2937),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF374151),
-                    width: 1,
-                  ),
-                ),
-                child: TextField(
-                  controller: _editController,
-                  focusNode: _editFocusNode,
-                  maxLines: null,
-                  minLines: 3,
-                  maxLength: 500,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    height: 1.6,
-                    letterSpacing: 0.2,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(16),
-                    counterStyle: TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 11,
-                    ),
-                    hintText: 'Введите текст комментария...',
-                    hintStyle: TextStyle(
-                      color: Color(0xFF6B7280),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  TextField(
+                    controller: _editController,
+                    focusNode: _editFocusNode,
+                    maxLines: null,
+                    minLines: 3,
+                    maxLength: 500,
+                    style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 14,
+                      height: 1.6,
+                      letterSpacing: 0.2,
                     ),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(16),
+                      counterText: '', // скрываем системный
+                      hintText: 'Введите текст комментария...',
+                      hintStyle: TextStyle(
+                        color: Color(0xFF6B7280),
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Color(0xFF374151),
+                          width: 1,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: _editFocusNode.hasFocus ? Color(0xFF388E3C) : Color(0xFF374151),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    onChanged: (_) {
+                      setState(() {});
+                    },
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Builder(
+                    builder: (context) {
+                      final characterCount = _editController.text.length;
+                      final isNearLimit = characterCount > 450;
+                      final isAtLimit = characterCount >= 500;
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isAtLimit
+                                  ? const Color(0xFFEF4444).withOpacity(0.2)
+                                  : isNearLimit
+                                      ? const Color(0xFFF59E0B).withOpacity(0.2)
+                                      : const Color(0xFF181F2A).withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isAtLimit
+                                    ? const Color(0xFFEF4444).withOpacity(0.4)
+                                    : isNearLimit
+                                        ? const Color(0xFFF59E0B).withOpacity(0.4)
+                                        : const Color(0xFF374151).withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isNearLimit)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: Icon(
+                                      isAtLimit ? Icons.error_rounded : Icons.warning_rounded,
+                                      size: 14,
+                                      color: isAtLimit
+                                          ? const Color(0xFFEF4444)
+                                          : const Color(0xFFF59E0B),
+                                    ),
+                                  ),
+                                Text(
+                                  '$characterCount/500',
+                                  style: TextStyle(
+                                    color: isAtLimit
+                                        ? const Color(0xFFEF4444)
+                                        : isNearLimit
+                                            ? const Color(0xFFF59E0B)
+                                            : const Color(0xFF9CA3AF),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
               )
             else
               Column(
@@ -230,7 +308,7 @@ class _CommentCardState extends State<CommentCard> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'изменено',
+                                _formatDateTime(widget.comment.editedAt!),
                                 style: TextStyle(
                                   color: const Color(0xFF9CA3AF),
                                   fontSize: 11,
@@ -255,6 +333,7 @@ class _CommentCardState extends State<CommentCard> {
   Widget _buildActionButton({
     required IconData icon,
     required VoidCallback onPressed,
+    Color? iconColor,
   }) {
     return Material(
       color: Colors.transparent,
@@ -274,11 +353,46 @@ class _CommentCardState extends State<CommentCard> {
           child: Icon(
             icon,
             size: 18,
-            color: const Color(0xFF9CA3AF),
+            color: iconColor ?? const Color(0xFF9CA3AF),
           ),
         ),
       ),
     );
+  }
+  
+  String _formatDateTime(int timestamp) {
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final commentDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    
+    if (commentDate == today) {
+      // Если сегодня, показываем только время
+      final hour = dateTime.hour.toString().padLeft(2, '0');
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+      return 'изменено $hour:$minute';
+    } else {
+      // Если не сегодня, показываем дату и время
+      final day = dateTime.day;
+      final month = _getMonthName(dateTime.month);
+      final hour = dateTime.hour.toString().padLeft(2, '0');
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+      
+      // Если год отличается от текущего, добавляем год
+      if (dateTime.year != now.year) {
+        return 'изменено $day $month ${dateTime.year} г. $hour:$minute';
+      } else {
+        return 'изменено $day $month $hour:$minute';
+      }
+    }
+  }
+  
+  String _getMonthName(int month) {
+    const months = [
+      'янв.', 'фев.', 'мар.', 'апр.', 'мая', 'июн.',
+      'июл.', 'авг.', 'сен.', 'окт.', 'ноя.', 'дек.'
+    ];
+    return months[month - 1];
   }
   
   Future<void> _saveEdit(BuildContext context) async {
@@ -314,12 +428,14 @@ class _CommentCardState extends State<CommentCard> {
           _isEditing = false;
         });
         
-        _showSnackBar(
-          context: context,
-          message: 'Комментарий успешно изменён',
-          icon: Icons.check_circle_rounded,
-          color: const Color(0xFF388E3C),
-        );
+        if (context.mounted) {
+          _showSnackBar(
+            context: context,
+            message: 'Комментарий успешно изменён',
+            icon: Icons.check_circle_rounded,
+            color: const Color(0xFF388E3C),
+          );
+        }
       } else if (mounted) {
         _showSnackBar(
           context: context,
@@ -356,19 +472,6 @@ class _CommentCardState extends State<CommentCard> {
           ),
           title: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF181F2A),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.warning_rounded,
-                  color: Color(0xFFEF4444),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
               const Expanded(
                 child: Text(
                   'Удалить комментарий?',
