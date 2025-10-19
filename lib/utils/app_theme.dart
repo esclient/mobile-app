@@ -179,6 +179,7 @@ class AppTheme {
   static const Color borderColor = Color(AppColors.border);
   static const Color accentColor = Color(AppColors.accent);
   static const Color warningColor = Color(AppColors.warning);
+  static const Color errorColor = Color(AppColors.error);
   static const Color textPrimary = Color(AppColors.textPrimary);
   static const Color textSecondary = Color(AppColors.textSecondary);
   static const Color textMuted = Color(AppColors.textMuted);
@@ -197,6 +198,7 @@ class AppColorsAccess {
   Color get border => const Color(AppColors.border);
   Color get primary => const Color(AppColors.accent);
   Color get warning => const Color(AppColors.warning);
+  Color get error => const Color(AppColors.error);
   Color get onSurface => const Color(AppColors.textPrimary);
   Color get onSurfaceSecondary => const Color(AppColors.textSecondary);
   Color get onSurfaceMuted => const Color(AppColors.textMuted);

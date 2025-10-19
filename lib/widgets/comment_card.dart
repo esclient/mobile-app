@@ -402,7 +402,7 @@ class _CommentCardState extends State<CommentCard> {
       _showSnackBar(
         context: context,
         message: 'Комментарий не может быть пустым',
-        icon: Icons.warning_rounded,
+        icon: Icons.close_rounded,
         color: const Color(0xFFEF4444),
       );
       return;
@@ -416,6 +416,7 @@ class _CommentCardState extends State<CommentCard> {
     }
     
     final commentsProvider = context.read<CommentsProvider>();
+    final messenger = ScaffoldMessenger.of(context);
     
     try {
       final success = await commentsProvider.editComment(
@@ -423,36 +424,127 @@ class _CommentCardState extends State<CommentCard> {
         text: newText,
       );
       
-      if (success && mounted) {
-        setState(() {
-          _isEditing = false;
-        });
-        
-        if (context.mounted) {
-          _showSnackBar(
-            context: context,
-            message: 'Комментарий успешно изменён',
-            icon: Icons.check_circle_rounded,
-            color: const Color(0xFF388E3C),
-          );
+      if (success) {
+        if (mounted) {
+          setState(() {
+            _isEditing = false;
+          });
         }
-      } else if (mounted) {
-        _showSnackBar(
-          context: context,
-          message: commentsProvider.error ?? 'Не удалось изменить комментарий',
-          icon: Icons.error_rounded,
-          color: const Color(0xFFEF4444),
+        
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Комментарий успешно изменён',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF388E3C),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    commentsProvider.error ?? 'Не удалось изменить комментарий',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     } catch (e) {
-      if (mounted) {
-        _showSnackBar(
-          context: context,
-          message: 'Ошибка: ${e.toString()}',
-          icon: Icons.error_rounded,
-          color: const Color(0xFFEF4444),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Ошибка: ${e.toString()}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
   
@@ -543,27 +635,86 @@ class _CommentCardState extends State<CommentCard> {
   
   Future<void> _deleteComment(BuildContext context) async {
     final commentsProvider = context.read<CommentsProvider>();
+    final messenger = ScaffoldMessenger.of(context);
     
     try {
       await commentsProvider.deleteComment(widget.comment.id);
       
-      if (context.mounted) {
-        _showSnackBar(
-          context: context,
-          message: 'Комментарий удалён',
-          icon: Icons.check_circle_rounded,
-          color: const Color(0xFF388E3C),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Комментарий удалён',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF388E3C),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
-      if (context.mounted) {
-        _showSnackBar(
-          context: context,
-          message: 'Ошибка: ${e.toString()}',
-          icon: Icons.error_rounded,
-          color: const Color(0xFFEF4444),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Ошибка: ${e.toString()}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
   

@@ -55,7 +55,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
     if (text.isEmpty) {
       _showSnackBar(
         message: 'Комментарий не может быть пустым',
-        icon: Icons.warning_rounded,
+        icon: Icons.close_rounded,
         color: const Color(0xFFEF4444),
       );
       return;
@@ -87,7 +87,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
         if (mounted) {
           _showSnackBar(
             message: 'Комментарий успешно добавлен',
-            icon: Icons.check_circle_rounded,
+            icon: Icons.check_rounded,
             color: const Color(0xFF388E3C),
           );
         }
@@ -95,7 +95,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
         if (mounted) {
           _showSnackBar(
             message: commentsProvider.error ?? 'Ошибка при создании комментария',
-            icon: Icons.error_rounded,
+            icon: Icons.close_rounded,
             color: const Color(0xFFEF4444),
           );
         }
