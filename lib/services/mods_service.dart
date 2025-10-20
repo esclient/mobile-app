@@ -1,19 +1,35 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../model/mod_item.dart';
 import 'graphql_client.dart';
 
-/// ModsService with retry logic, better error handling, and caching
+List<ModItem> _parseModsInIsolate(List<dynamic> jsonList) {
+  return jsonList.map((json) => ModItem.fromJson(json)).toList();
+}
+
+List<ModItem> _filterModsInIsolate(Map<String, dynamic> params) {
+  final List<ModItem> mods = params['mods'] as List<ModItem>;
+  final String query = params['query'] as String;
+  final lowerQuery = query.toLowerCase();
+  
+  return mods.where((mod) {
+    return mod.title.toLowerCase().contains(lowerQuery) ||
+           mod.description.toLowerCase().contains(lowerQuery) ||
+           mod.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
+  }).toList();
+}
+
 class ModsService {
   final GraphQLHelper _graphqlHelper;
   final _searchController = StreamController<String>.broadcast();
   Timer? _debounceTimer;
 
-  // Cache for storing fetched mods to avoid unnecessary API calls
   final Map<String, List<ModItem>> _modsCache = {};
   final Map<String, DateTime> _cacheTimestamps = {};
   final Duration _cacheExpiry = const Duration(minutes: 5);
+  List<ModItem>? _cachedFallbackMods;
 
   ModsService(GraphQLClient client)
       : _graphqlHelper = GraphQLHelper(client) {
@@ -29,7 +45,6 @@ class ModsService {
     });
   }
 
-  // GraphQL queries - CORRECTED to match your schema
   static const String _getModsQuery = r'''
     query GetMods {
       mod {
@@ -78,22 +93,16 @@ class ModsService {
     }
   ''';
 
-  /// Fetch mods with caching and retry logic
   Future<List<ModItem>> fetchMods({
     String period = 'all_time',
     int limit = 20,
     int offset = 0,
   }) async {
-    print('🔵 ModsService: fetchMods called');
     const cacheKey = 'all_mods';
 
-    // Check cache first
     if (_isCacheValid(cacheKey)) {
-      print('✅ Cache hit for key: $cacheKey (${_modsCache[cacheKey]!.length} mods)');
       return _modsCache[cacheKey]!;
     }
-
-    print('🔵 Cache miss, fetching from API...');
     
     try {
       final QueryOptions options = QueryOptions(
@@ -101,56 +110,36 @@ class ModsService {
         fetchPolicy: FetchPolicy.networkOnly,
       );
 
-      print('🔵 Executing GraphQL query...');
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
 
-      print('🔵 Response received');
-      print('🔵 Has exception: ${result.hasException}');
-      print('🔵 Data: ${result.data}');
-
       if (result.hasException && result.data == null) {
-        print('🔴 GraphQL error: ${result.exception}');
-        print('🔴 Returning fallback mods');
+        log('GraphQL error: ${result.exception}');
         return _getFallbackMods();
       }
 
       final List<dynamic> modsData = result.data?['mod']?['getMods'] ?? [];
-      print('🟢 Successfully fetched ${modsData.length} mods from API');
-      
-      final List<ModItem> mods = modsData
-          .map((json) => ModItem.fromJson(json))
-          .toList();
-
-      // Cache the results
+      final List<ModItem> mods = await compute(_parseModsInIsolate, modsData);
       _updateCache(cacheKey, mods);
-      print('✅ Cached ${mods.length} mods with key: $cacheKey');
 
       return mods;
     } catch (e) {
-      print('🔴 Error fetching mods: $e');
-      print('🔴 Returning fallback mods');
+      log('Error fetching mods: $e');
       return _getFallbackMods();
     }
   }
 
-  /// Search mods with debouncing
   Stream<List<ModItem>> searchModsStream(String query) {
     return _searchController.stream
         .where((q) => q == query)
         .asyncMap((_) => searchMods(query));
   }
 
-  /// Debounced search trigger
   void triggerSearch(String query) {
     _searchController.add(query);
   }
 
-  Future<void> _performSearch(String query) async {
-    // This method is called after debouncing
-    // The actual search happens in searchMods method
-  }
+  Future<void> _performSearch(String query) async {}
 
-  /// Search mods with retry logic
   Future<List<ModItem>> searchMods(String query) async {
     if (query.trim().isEmpty) {
       return fetchMods();
@@ -158,14 +147,11 @@ class ModsService {
 
     final cacheKey = 'search-$query';
 
-    // Check cache first
     if (_isCacheValid(cacheKey)) {
       return _modsCache[cacheKey]!;
     }
 
     try {
-      // Note: Your API doesn't support search filtering yet
-      // This will return all mods and filter client-side
       final QueryOptions options = QueryOptions(
         document: gql(_searchModsQuery),
         fetchPolicy: FetchPolicy.networkOnly,
@@ -179,18 +165,11 @@ class ModsService {
       }
 
       final List<dynamic> modsData = result.data?['mod']?['getMods'] ?? [];
-      final List<ModItem> allMods = modsData
-          .map((json) => ModItem.fromJson(json))
-          .toList();
-
-      // Client-side filtering
-      final List<ModItem> filteredMods = allMods
-          .where((mod) =>
-              mod.title.toLowerCase().contains(query.toLowerCase()) ||
-              mod.description.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-
-      // Cache the search results
+      final List<ModItem> allMods = await compute(_parseModsInIsolate, modsData);
+      final List<ModItem> filteredMods = await compute(
+        _filterModsInIsolate,
+        {'mods': allMods, 'query': query},
+      );
       _updateCache(cacheKey, filteredMods);
 
       return filteredMods;
@@ -200,7 +179,6 @@ class ModsService {
     }
   }
 
-  /// Fetch a single mod with retry logic
   Future<ModItem?> fetchMod(String id) async {
     try {
       final QueryOptions options = QueryOptions(
@@ -226,7 +204,6 @@ class ModsService {
     }
   }
 
-  /// Prefetch popular mods for better performance
   Future<void> prefetchPopularMods() async {
     final options = QueryOptions(
       document: gql(_getModsQuery),
@@ -235,20 +212,17 @@ class ModsService {
     await _graphqlHelper.prefetchQuery(options);
   }
 
-  /// Clear all caches
   void clearCache() {
     _modsCache.clear();
     _cacheTimestamps.clear();
     _graphqlHelper.clearCache('mods');
   }
 
-  /// Update cache with timestamp
   void _updateCache(String key, List<ModItem> mods) {
     _modsCache[key] = mods;
     _cacheTimestamps[key] = DateTime.now();
   }
 
-  /// Check if cache is still valid
   bool _isCacheValid(String key) {
     if (!_modsCache.containsKey(key)) return false;
 
@@ -258,9 +232,13 @@ class ModsService {
     return DateTime.now().difference(timestamp) < _cacheExpiry;
   }
 
-  /// Fallback mods when API fails
   List<ModItem> _getFallbackMods() {
-    return [
+    if (_cachedFallbackMods != null) {
+      return _cachedFallbackMods!;
+    }
+    
+    final now = DateTime.now();
+    _cachedFallbackMods = [
       ModItem(
         id: '-1',
         title: 'Enhanced Graphics Pack',
@@ -269,7 +247,7 @@ class ModsService {
         ratingsCount: 5432,
         imageUrl: 'lib/icons/main/mod_test_pfp.png',
         tags: ['Graphics', 'Visual', 'Enhancement', 'Quality'],
-        createdAt: DateTime.now().subtract(const Duration(days: 30)),
+        createdAt: now.subtract(const Duration(days: 30)),
         authorId: 'fallback_author_1',
         downloadsCount: 15420,
       ),
@@ -281,7 +259,7 @@ class ModsService {
         ratingsCount: 3210,
         imageUrl: 'lib/icons/main/mod_test_pfp.png',
         tags: ['Gameplay', 'Overhaul', 'Mechanics', 'AI'],
-        createdAt: DateTime.now().subtract(const Duration(days: 15)),
+        createdAt: now.subtract(const Duration(days: 15)),
         authorId: 'fallback_author_2',
         downloadsCount: 8765,
       ),
@@ -293,28 +271,30 @@ class ModsService {
         ratingsCount: 1876,
         imageUrl: 'lib/icons/main/mod_test_pfp.png',
         tags: ['Audio', 'Sound', 'Music', 'Enhancement'],
-        createdAt: DateTime.now().subtract(const Duration(days: 7)),
+        createdAt: now.subtract(const Duration(days: 7)),
         authorId: 'fallback_author_3',
         downloadsCount: 4321,
       ),
     ];
+    
+    return _cachedFallbackMods!;
   }
 
-  /// Fallback search results when API fails
   List<ModItem> _getFallbackSearch(String query) {
     final fallbackMods = _getFallbackMods();
-    return fallbackMods
-        .where((mod) =>
-            mod.title.toLowerCase().contains(query.toLowerCase()) ||
-            mod.description.toLowerCase().contains(query.toLowerCase()) ||
-            mod.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase())))
-        .toList();
+    final lowerQuery = query.toLowerCase();
+    
+    return fallbackMods.where((mod) {
+      return mod.title.toLowerCase().contains(lowerQuery) ||
+             mod.description.toLowerCase().contains(lowerQuery) ||
+             mod.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
+    }).toList();
   }
 
-  /// Dispose resources
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.close();
     clearCache();
+    _cachedFallbackMods = null;
   }
 }

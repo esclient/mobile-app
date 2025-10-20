@@ -4,7 +4,6 @@ import '../services/mods_service.dart';
 import 'dart:developer';
 import 'dart:async';
 
-/// Provider for managing mods state with optimized data handling
 class ModsProvider extends ChangeNotifier {
   final ModsService _modsService;
   StreamSubscription? _searchSubscription;
@@ -13,7 +12,6 @@ class ModsProvider extends ChangeNotifier {
     _initializeProvider();
   }
 
-  // State variables
   List<ModItem> _mods = [];
   List<ModItem> _searchResults = [];
   bool _isLoading = false;
@@ -25,7 +23,6 @@ class ModsProvider extends ChangeNotifier {
   final int _pageSize = 20;
   bool _hasMoreMods = true;
 
-  // Getters
   List<ModItem> get mods => _mods;
   List<ModItem> get searchResults => _searchResults;
   bool get isLoading => _isLoading;
@@ -36,11 +33,9 @@ class ModsProvider extends ChangeNotifier {
   bool get isSearchMode => _currentSearchQuery.isNotEmpty;
 
   void _initializeProvider() {
-    // Prefetch popular mods for better initial loading
     _modsService.prefetchPopularMods();
   }
 
-  /// Load initial mods
   Future<void> loadMods({String period = 'all_time'}) async {
     if (_isLoading) return;
     
@@ -70,7 +65,6 @@ class ModsProvider extends ChangeNotifier {
     }
   }
 
-  /// Load more mods for pagination
   Future<void> loadMoreMods() async {
     if (_isLoading || !_hasMoreMods || _currentSearchQuery.isNotEmpty) return;
     
@@ -97,7 +91,6 @@ class ModsProvider extends ChangeNotifier {
     }
   }
 
-  /// Search mods with debouncing
   void searchMods(String query) {
     _currentSearchQuery = query;
     
@@ -106,7 +99,6 @@ class ModsProvider extends ChangeNotifier {
       return;
     }
     
-    // Cancel previous search subscription
     _searchSubscription?.cancel();
     
     _isSearching = true;
@@ -115,10 +107,9 @@ class ModsProvider extends ChangeNotifier {
     
     _modsService.triggerSearch(query);
     
-    // Listen to search results
     _searchSubscription = _modsService.searchModsStream(query).listen(
       (results) {
-        if (_currentSearchQuery == query) { // Only update if still current query
+        if (_currentSearchQuery == query) {
           _searchResults = results;
           _isSearching = false;
           notifyListeners();
@@ -135,7 +126,6 @@ class ModsProvider extends ChangeNotifier {
     );
   }
 
-  /// Clear search and return to main mods list
   void clearSearch() {
     _searchSubscription?.cancel();
     _clearSearch();
@@ -149,15 +139,12 @@ class ModsProvider extends ChangeNotifier {
     _error = null;
   }
 
-  /// Refresh mods (pull to refresh)
   Future<void> refreshMods() async {
     _modsService.clearCache();
     await loadMods(period: _currentPeriod);
   }
 
-  /// Get mod by ID
   Future<ModItem?> getModById(String id) async {
-    // First check if mod is already in memory
     ModItem? mod = _mods.cast<ModItem?>().firstWhere(
       (m) => m?.id == id,
       orElse: () => null,
@@ -165,7 +152,6 @@ class ModsProvider extends ChangeNotifier {
     
     if (mod != null) return mod;
     
-    // Check search results
     mod = _searchResults.cast<ModItem?>().firstWhere(
       (m) => m?.id == id,
       orElse: () => null,
@@ -173,7 +159,6 @@ class ModsProvider extends ChangeNotifier {
     
     if (mod != null) return mod;
     
-    // Fetch from API if not in memory
     try {
       return await _modsService.fetchMod(id);
     } catch (e) {
@@ -184,15 +169,11 @@ class ModsProvider extends ChangeNotifier {
     }
   }
 
-  /// Toggle favorite status (placeholder for future implementation)
   Future<void> toggleFavorite(String modId) async {
-    // TODO: Implement favorite functionality
     log('Toggle favorite for mod: $modId');
   }
 
-  /// Report a mod (placeholder for future implementation)
   Future<void> reportMod(String modId, String reason) async {
-    // TODO: Implement reporting functionality
     log('Report mod $modId for: $reason');
   }
 

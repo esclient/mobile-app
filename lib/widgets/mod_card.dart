@@ -3,7 +3,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../model/mod_item.dart';
 import '../components/interactive_widgets.dart';
 
-/// Optimized version of ModCard with better performance
 class ModCard extends StatelessWidget {
   final ModItem mod;
   final VoidCallback? onTap;
@@ -16,28 +15,30 @@ class ModCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        height: 134,
-        decoration: BoxDecoration(
-          color: const Color(0xFF181F2A),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFF374151),
-            width: 1,
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          height: 134,
+          decoration: BoxDecoration(
+            color: const Color(0xFF181F2A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF374151),
+              width: 1,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildLeftSection(),
-              const SizedBox(width: 13),
-              Expanded(child: _buildRightSection(context)),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLeftSection(),
+                const SizedBox(width: 13),
+                Expanded(child: _buildRightSection(context)),
+              ],
+            ),
           ),
         ),
       ),
@@ -47,7 +48,6 @@ class ModCard extends StatelessWidget {
   Widget _buildLeftSection() {
     return Column(
       children: [
-        // Optimized image loading with caching
         Hero(
           tag: 'mod_image_${mod.id}',
           child: ClipRRect(
@@ -62,15 +62,18 @@ class ModCard extends StatelessWidget {
   }
 
   Widget _buildModImage() {
-    // Check if it's a network image or local asset
     if (mod.imageUrl.startsWith('http')) {
       return CachedNetworkImage(
         imageUrl: mod.imageUrl,
         width: 48,
         height: 48,
-        memCacheWidth: 96, // Cache at 2x resolution for retina displays
-        memCacheHeight: 96,
+        memCacheWidth: 144,
+        memCacheHeight: 144,
+        maxWidthDiskCache: 144,
+        maxHeightDiskCache: 144,
         fit: BoxFit.cover,
+        fadeInDuration: const Duration(milliseconds: 200),
+        fadeOutDuration: const Duration(milliseconds: 100),
         placeholder: (context, url) => Container(
           width: 48,
           height: 48,
@@ -98,7 +101,6 @@ class ModCard extends StatelessWidget {
         ),
       );
     } else {
-      // Local asset image
       return Image.asset(
         'lib/icons/main/mod_test_pfp.png',
         width: 48,
@@ -121,19 +123,18 @@ class ModCard extends StatelessWidget {
   }
 
   Widget _buildRatingSection() {
+    final ratingText = mod.rating.toStringAsFixed(1);
+    
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Star rating
         StarRating(
           rating: mod.rating,
           starSize: 10,
         ),
         const SizedBox(height: 2),
-        
-        // Rating number
         Text(
-          mod.rating.toStringAsFixed(1),
+          ratingText,
           textAlign: TextAlign.center,
           style: const TextStyle(
             color: Color(0xFFF59E0B),
@@ -143,8 +144,6 @@ class ModCard extends StatelessWidget {
             height: 1.71,
           ),
         ),
-        
-        // Rating count
         Text(
           mod.formattedRatingsCount,
           textAlign: TextAlign.center,
@@ -165,7 +164,6 @@ class ModCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        // Title
         Text(
           mod.title,
           style: const TextStyle(
@@ -179,8 +177,6 @@ class ModCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
-        
-        // Description
         Expanded(
           child: Text(
             mod.description,
@@ -196,34 +192,43 @@ class ModCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        
-        // Tags - optimized to show only essential tags
         if (mod.tags.isNotEmpty)
           SizedBox(
             height: 26,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: mod.tags.length > 5 ? 5 : mod.tags.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: InteractiveTag(
-                    text: mod.tags[index],
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Фильтр по тегу "${mod.tags[index]}"'),
-                          duration: const Duration(seconds: 2),
-                          backgroundColor: const Color(0xFF388E3C),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+            child: _TagsList(tags: mod.tags),
           ),
       ],
+    );
+  }
+}
+
+class _TagsList extends StatelessWidget {
+  final List<String> tags;
+
+  const _TagsList({required this.tags});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: tags.length > 5 ? 5 : tags.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(right: 6),
+          child: InteractiveTag(
+            text: tags[index],
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Фильтр по тегу "${tags[index]}"'),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: const Color(0xFF388E3C),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

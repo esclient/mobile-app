@@ -16,18 +16,12 @@ import 'widgets/comment_card.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive for caching
   await Hive.initFlutter();
 
-  // Initialize services once at startup
   final serviceLocator = ServiceLocator();
   await serviceLocator.initialize();
 
-
-  // TEMPORARY: Auto-login test user for testing comments
-  // TODO: Remove this when real authentication is implemented
   serviceLocator.authService.login('test@example.com', userId: '999');
-
 
   runApp(MyApp(serviceLocator: serviceLocator));
 }
@@ -41,16 +35,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Service providers
         Provider<ServiceLocator>.value(value: serviceLocator),
         Provider.value(value: serviceLocator.modsService),
         ChangeNotifierProvider.value(value: serviceLocator.authService),
         Provider.value(value: serviceLocator.commentService),
         
-        // State providers
         ChangeNotifierProvider<ModsProvider>(
           create: (context) => ModsProvider(serviceLocator.modsService),
-          lazy: false,
+          lazy: true,
         ),
         
         ChangeNotifierProvider<CommentsProvider>(
@@ -80,7 +72,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Refactored to use CommentsProvider
 class CommentsPage extends StatelessWidget {
   const CommentsPage({super.key});
 
@@ -102,7 +93,7 @@ class CommentsList extends StatefulWidget {
 
 class _CommentsListState extends State<CommentsList>
     with AutomaticKeepAliveClientMixin {
-  final String _modId = '69'; // Your mod ID
+  final String _modId = '69';
 
   @override
   bool get wantKeepAlive => true;
@@ -110,7 +101,6 @@ class _CommentsListState extends State<CommentsList>
   @override
   void initState() {
     super.initState();
-    // Load comments using provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CommentsProvider>().loadComments(_modId);
     });
@@ -122,7 +112,6 @@ class _CommentsListState extends State<CommentsList>
 
     return Consumer<CommentsProvider>(
       builder: (context, provider, child) {
-        // Header with comment count
         final header = Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -158,7 +147,6 @@ class _CommentsListState extends State<CommentsList>
           ),
         );
 
-        // Loading state
         if (provider.isLoading && provider.comments.isEmpty) {
           return Column(
             children: [
@@ -172,7 +160,6 @@ class _CommentsListState extends State<CommentsList>
           );
         }
 
-        // Error state
         if (provider.error != null && provider.comments.isEmpty) {
           return Column(
             children: [
@@ -182,7 +169,6 @@ class _CommentsListState extends State<CommentsList>
           );
         }
 
-        // Empty state
         if (provider.comments.isEmpty) {
           return Column(
             children: [
@@ -192,7 +178,6 @@ class _CommentsListState extends State<CommentsList>
           );
         }
 
-        // Comments list
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -210,9 +195,9 @@ class _CommentsListState extends State<CommentsList>
                     vertical: 0,
                   ),
                   itemCount: provider.comments.length,
-                  cacheExtent: 500,
+                  cacheExtent: 1000,
                   addAutomaticKeepAlives: false,
-                  addRepaintBoundaries: true,
+                  addRepaintBoundaries: false,
                   itemBuilder: (context, index) {
                     final comment = provider.comments[index];
                     return Padding(
