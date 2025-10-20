@@ -570,6 +570,7 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
         isLoading: provider.isLoading,
         error: provider.error,
       ),
+      shouldRebuild: (prev, next) => true, // Always rebuild when provider notifies
       builder: (context, data, child) {
         if (data.isLoading) {
           return const Center(
@@ -812,6 +813,7 @@ class _CommentsHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Selector<CommentsProvider, int>(
       selector: (_, provider) => provider.comments.length,
+      shouldRebuild: (prev, next) => true, // Always update comment count
       builder: (context, count, child) {
         return Row(
           children: [
