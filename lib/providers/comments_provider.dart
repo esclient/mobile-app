@@ -7,40 +7,29 @@ class CommentsProvider extends ChangeNotifier {
   final CommentService _commentsService;
   CommentsProvider(this._commentsService);
 
-  // State variables
   List<Comment> _comments = [];
   bool _isLoading = false;
   String? _error;
   String? _currentModId;
-
-  // Getters
   List<Comment> get comments => _comments;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get currentModId => _currentModId;
 
   Future<void> loadComments(String modId) async {
-    print('🔵 CommentsProvider: loadComments called for modId: $modId');
-
-    if (_isLoading) {
-        print('⚠️ Already loading, skipping');
-        return;
-    }
+    if (_isLoading) return;
     
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-        print('🔵 Calling service.fetchComments...');
         final newComments = await _commentsService.fetchComments(modId);
         _comments = newComments;
         _currentModId = modId;
-        print('🟢 Successfully loaded ${newComments.length} comments');
     } catch (e) {
-        print('🔴 Error in provider: $e');
         _error = 'Failed to load comments: ${e.toString()}';
-        _comments = []; // Clear comments on error
+        _comments = [];
     } finally {
         _isLoading = false;
         notifyListeners();
@@ -50,27 +39,34 @@ class CommentsProvider extends ChangeNotifier {
 
 
   Future<void> deleteComment(String commentId) async {
-    if (_isLoading) return;
-   
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
       log('Attempting to delete comment: $commentId');
+      
+      // Optimistic update: remove comment immediately
+      final removedIndex = _comments.indexWhere((c) => c.id == commentId);
+      Comment? removedComment;
+      
+      if (removedIndex != -1) {
+        removedComment = _comments.removeAt(removedIndex);
+        notifyListeners();
+      }
+      
+      // Send delete request to server
       final success = await _commentsService.deleteComment(commentId);
      
       if (success) {
-        _comments.removeWhere((comment) => comment.id == commentId);
         log('Successfully deleted comment: $commentId');
       } else {
+        // Rollback: restore comment if server request failed
+        if (removedComment != null && removedIndex != -1) {
+          _comments.insert(removedIndex, removedComment);
+          notifyListeners();
+        }
         throw Exception("Failed to delete a comment");
       }
     } catch (e) {
       log('Error deleting comment: $e');
       _error = 'Failed to delete a comment: ${e.toString()}';
-    } finally {
-      _isLoading = false;
       notifyListeners();
     }
   }
@@ -80,8 +76,6 @@ class CommentsProvider extends ChangeNotifier {
     required String authorId,
     required String text,
   }) async {
-    if (_isLoading) return false;
-    
     // Validate input
     if (text.trim().isEmpty) {
       _error = 'Комментарий не может быть пустым';
@@ -89,40 +83,47 @@ class CommentsProvider extends ChangeNotifier {
       return false;
     }
    
-    _isLoading = true;
     _error = null;
+    
+    // Create temporary comment with temporary ID
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final tempComment = Comment(
+      id: tempId,
+      authorId: authorId,
+      text: text,
+      createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+    
+    // Optimistic update: add comment immediately
+    _comments.insert(0, tempComment);
     notifyListeners();
     
     try {
-      print('🔵 CommentsProvider: Creating comment for mod $modId');
-      
-      // Call service to create comment
       final commentId = await _commentsService.createComment(
         modId: modId,
         authorId: authorId,
         text: text,
       );
       
-      // Create new comment object and add to list
-      final newComment = Comment(
-        id: commentId,
-        authorId: authorId,
-        text: text,
-        createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      );
-      
-      // Add to beginning of list (newest first)
-      _comments.insert(0, newComment);
-      print('🟢 Comment created successfully with ID: $commentId');
+      // Replace temporary comment with real one
+      final tempIndex = _comments.indexWhere((c) => c.id == tempId);
+      if (tempIndex != -1) {
+        _comments[tempIndex] = Comment(
+          id: commentId,
+          authorId: authorId,
+          text: text,
+          createdAt: _comments[tempIndex].createdAt,
+        );
+        notifyListeners();
+      }
       
       return true;
     } catch (e) {
-      print('🔴 Error creating comment: $e');
+      // Rollback: remove temporary comment if server request failed
+      _comments.removeWhere((c) => c.id == tempId);
       _error = 'Не удалось создать комментарий: ${e.toString()}';
-      return false;
-    } finally {
-      _isLoading = false;
       notifyListeners();
+      return false;
     }
   }
 
@@ -130,8 +131,6 @@ class CommentsProvider extends ChangeNotifier {
     required String commentId,
     required String text,
   }) async {
-    if (_isLoading) return false;
-    
     // Validate input
     if (text.trim().isEmpty) {
       _error = 'Комментарий не может быть пустым';
@@ -139,43 +138,49 @@ class CommentsProvider extends ChangeNotifier {
       return false;
     }
   
-    _isLoading = true;
     _error = null;
+    
+    // Find the comment to edit
+    final index = _comments.indexWhere((c) => c.id == commentId);
+    if (index == -1) {
+      _error = 'Комментарий не найден';
+      notifyListeners();
+      return false;
+    }
+    
+    // Store original comment for rollback
+    final originalComment = _comments[index];
+    
+    // Optimistic update: update comment immediately
+    _comments[index] = Comment(
+      id: originalComment.id,
+      authorId: originalComment.authorId,
+      text: text,
+      createdAt: originalComment.createdAt,
+      editedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
     notifyListeners();
     
     try {
-      print('🔵 CommentsProvider: Editing comment $commentId');
-      
-      // Call service to edit comment
       final success = await _commentsService.editComment(
         commentId: commentId,
         text: text,
       );
       
-      if (success) {
-        // Update the comment in the local list
-        final index = _comments.indexWhere((c) => c.id == commentId);
-        if (index != -1) {
-          // Create updated comment with new text and edited timestamp
-          _comments[index] = Comment(
-            id: _comments[index].id,
-            authorId: _comments[index].authorId,
-            text: text,
-            createdAt: _comments[index].createdAt,
-            editedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          );
-        }
-        print('🟢 Comment edited successfully');
+      if (!success) {
+        // Rollback: restore original comment if server request failed
+        _comments[index] = originalComment;
+        _error = 'Не удалось изменить комментарий';
+        notifyListeners();
       }
       
       return success;
     } catch (e) {
-      print('🔴 Error editing comment: $e');
+      // Rollback: restore original comment if error occurred
+      _comments[index] = originalComment;
       _error = 'Не удалось изменить комментарий: ${e.toString()}';
-      return false;
-    } finally {
-      _isLoading = false;
       notifyListeners();
+      return false;
     }
   }
 }

@@ -45,7 +45,8 @@ class _CommentCardState extends State<CommentCard> {
     final isOwner = (widget.currentUserId != null && widget.currentUserId == widget.comment.authorId) ||
                     widget.comment.authorId == tempTestUserId;
 
-    return Container(
+    return RepaintBoundary(
+      child: Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -74,7 +75,7 @@ class _CommentCardState extends State<CommentCard> {
                     child: Icon(
                       Icons.person_rounded,
                       size: 20,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
@@ -182,7 +183,7 @@ class _CommentCardState extends State<CommentCard> {
                     ),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.all(16),
-                      counterText: '', // скрываем системный
+                      counterText: '',
                       hintText: 'Введите текст комментария...',
                       hintStyle: TextStyle(
                         color: Color(0xFF6B7280),
@@ -225,17 +226,17 @@ class _CommentCardState extends State<CommentCard> {
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: isAtLimit
-                                  ? const Color(0xFFEF4444).withOpacity(0.2)
+                                  ? const Color(0xFFEF4444).withValues(alpha: 0.2)
                                   : isNearLimit
-                                      ? const Color(0xFFF59E0B).withOpacity(0.2)
-                                      : const Color(0xFF181F2A).withOpacity(0.5),
+                                      ? const Color(0xFFF59E0B).withValues(alpha: 0.2)
+                                      : const Color(0xFF181F2A).withValues(alpha: 0.5),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isAtLimit
-                                    ? const Color(0xFFEF4444).withOpacity(0.4)
+                                    ? const Color(0xFFEF4444).withValues(alpha: 0.4)
                                     : isNearLimit
-                                        ? const Color(0xFFF59E0B).withOpacity(0.4)
-                                        : const Color(0xFF374151).withOpacity(0.3),
+                                        ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
+                                        : const Color(0xFF374151).withValues(alpha: 0.3),
                                 width: 1,
                               ),
                             ),
@@ -327,6 +328,7 @@ class _CommentCardState extends State<CommentCard> {
           ],
         ),
       ),
+      ),
     );
   }
   
@@ -367,18 +369,15 @@ class _CommentCardState extends State<CommentCard> {
     final commentDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
     
     if (commentDate == today) {
-      // Если сегодня, показываем только время
       final hour = dateTime.hour.toString().padLeft(2, '0');
       final minute = dateTime.minute.toString().padLeft(2, '0');
       return 'изменено $hour:$minute';
     } else {
-      // Если не сегодня, показываем дату и время
       final day = dateTime.day;
       final month = _getMonthName(dateTime.month);
       final hour = dateTime.hour.toString().padLeft(2, '0');
       final minute = dateTime.minute.toString().padLeft(2, '0');
       
-      // Если год отличается от текущего, добавляем год
       if (dateTime.year != now.year) {
         return 'изменено $day $month ${dateTime.year} г. $hour:$minute';
       } else {
@@ -438,7 +437,7 @@ class _CommentCardState extends State<CommentCard> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -476,7 +475,7 @@ class _CommentCardState extends State<CommentCard> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -515,7 +514,7 @@ class _CommentCardState extends State<CommentCard> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -551,7 +550,7 @@ class _CommentCardState extends State<CommentCard> {
   Future<void> _showDeleteDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1F2937),
@@ -647,7 +646,7 @@ class _CommentCardState extends State<CommentCard> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -685,7 +684,7 @@ class _CommentCardState extends State<CommentCard> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -731,7 +730,7 @@ class _CommentCardState extends State<CommentCard> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

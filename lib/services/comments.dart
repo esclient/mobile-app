@@ -45,16 +45,15 @@ class CommentService {
   CommentService(this._client);
 
   Future<List<Comment>> fetchComments(String modId) async {
-    print('🔵 CommentService: Fetching comments for modId: $modId');
+    dev.log('Fetching comments for modId: $modId');
     
-    // Check if this is a fallback mod - return empty list immediately
     if (_isFallbackMod(modId)) {
-      print('⚠️ Fallback mod detected ($modId), returning empty comments');
+      dev.log('Fallback mod detected ($modId), returning empty comments');
       return [];
     }
    
     try {
-      print('🔵 Executing GraphQL query...');
+      dev.log('Executing GraphQL query...');
       final result = await _client.query(
         QueryOptions(
           document: gql(_getCommentsQuery),
@@ -63,39 +62,35 @@ class CommentService {
         ),
       );
       
-      print('🔵 Response received');
-      print('🔵 Has exception: ${result.hasException}');
-      print('🔵 Data: ${result.data}');
+      dev.log('Response received');
+      dev.log('Has exception: ${result.hasException}');
+      dev.log('Data: ${result.data}');
      
       if (result.hasException) {
-        print('🔴 Exception: ${result.exception}');
+        dev.log('Exception: ${result.exception}');
         
-        // Check if it's a validation error (not a network error)
         if (_isValidationError(result.exception)) {
-          print('🔴 Validation error detected, throwing exception');
+          dev.log('Validation error detected, throwing exception');
           throw result.exception!;
         }
         
-        // Only return mocks for network errors
-        print('⚠️ Network error, returning mock comments');
+        dev.log('Network error, returning mock comments');
         return _mockComments(modId);
       }
       
       final List data = result.data?['comment']?['getComments'] as List? ?? [];
-      print('🟢 Successfully parsed ${data.length} comments');
+      dev.log('Successfully parsed ${data.length} comments');
      
       return data.map((e) => Comment.fromJson(e)).toList();
     } catch (e) {
-      print('🔴 Error: $e');
+      dev.log('Error: $e');
       
-      // If it's already an OperationException, check if it's a validation error
       if (e is OperationException && _isValidationError(e)) {
-        print('🔴 Rethrowing validation error');
+        dev.log('Rethrowing validation error');
         rethrow;
       }
       
-      // For other errors (network, timeout, etc.), return mocks
-      print('⚠️ Returning mock comments due to error');
+      dev.log('Returning mock comments due to error');
       return _mockComments(modId);
     }
   }
@@ -106,7 +101,7 @@ class CommentService {
     required String text,
   }) async {
     try {
-      print('🔵 Creating comment for mod: $modId by author: $authorId');
+      dev.log('Creating comment for mod: $modId by author: $authorId');
       
       final result = await _client.mutate(
         MutationOptions(
@@ -119,17 +114,17 @@ class CommentService {
         ),
       );
 
-      print('🔵 Response received');
-      print('🔵 Has exception: ${result.hasException}');
-      print('🔵 Data: ${result.data}');
+      dev.log('Response received');
+      dev.log('Has exception: ${result.hasException}');
+      dev.log('Data: ${result.data}');
     
       if (result.hasException) {
-        print('🔴 Exception: ${result.exception}');
+        dev.log('Exception: ${result.exception}');
         throw result.exception!;
       }
       
       final commentId = result.data?['comment']?['createComment'] as String? ?? '';
-      print('🟢 Successfully created comment with ID: $commentId');
+      dev.log('Successfully created comment with ID: $commentId');
       return commentId;
     } catch(e) {
       dev.log('Error creating comment: $e');
@@ -139,7 +134,7 @@ class CommentService {
 
   Future<bool> deleteComment(String commentId) async {
     try {
-      print('🔵 Deleting comment: $commentId');
+      dev.log('Deleting comment: $commentId');
       final result = await _client.mutate(
         MutationOptions(
           document: gql(_deleteCommentMutation),
@@ -147,17 +142,17 @@ class CommentService {
         ),
       );
 
-      print('🔵 Response received');
-      print('🔵 Has exception: ${result.hasException}');
-      print('🔵 Data: ${result.data}');
+      dev.log('Response received');
+      dev.log('Has exception: ${result.hasException}');
+      dev.log('Data: ${result.data}');
     
       if (result.hasException) {
-        print('🔴 Exception: ${result.exception}');
+        dev.log('Exception: ${result.exception}');
         throw result.exception!;
       }
       
       final success = result.data?['comment']?['deleteComment'] ?? false;
-      print('🟢 Successfully deleted comment: $success');
+      dev.log('Successfully deleted comment: $success');
       return success;
     } catch(e) {
       dev.log('Error deleting comment: $e');
@@ -170,7 +165,7 @@ class CommentService {
     required String text,
   }) async {
     try {
-      print('🔵 Editing comment: $commentId');
+      dev.log('Editing comment: $commentId');
       final result = await _client.mutate(
         MutationOptions(
           document: gql(_editCommentMutation),
@@ -181,17 +176,17 @@ class CommentService {
         ),
       );
 
-      print('🔵 Response received');
-      print('🔵 Has exception: ${result.hasException}');
-      print('🔵 Data: ${result.data}');
+      dev.log('Response received');
+      dev.log('Has exception: ${result.hasException}');
+      dev.log('Data: ${result.data}');
     
       if (result.hasException) {
-        print('🔴 Exception: ${result.exception}');
+        dev.log('Exception: ${result.exception}');
         throw result.exception!;
       }
       
       final success = result.data?['comment']?['editComment'] ?? false;
-      print('🟢 Successfully edited comment: $success');
+      dev.log('Successfully edited comment: $success');
       return success;
     } catch(e) {
       dev.log('Error editing comment: $e');

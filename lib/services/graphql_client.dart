@@ -3,32 +3,46 @@ import 'dart:developer';
 
 /// Optimized GraphQL client with better caching and error handling
 Future<GraphQLClient> initGraphQLClient() async {
-  await initHiveForFlutter();
+  // Hive is already initialized in main.dart, don't block here
+  try {
+    await initHiveForFlutter();
+  } catch (e) {
+    // Already initialized, continue
+    log('Hive already initialized: $e');
+  }
   
-  // Configure the HTTP link with timeout
+  // Configure the HTTP link with shorter timeout for better responsiveness
   final HttpLink httpLink = HttpLink(
     'http://10.0.2.2:8000/graphql', 
     defaultHeaders: {
       'Content-Type': 'application/json',
+      'Keep-Alive': 'timeout=15, max=100', // Keep connections alive
     },
   );
   
   // Add auth link if needed (placeholder for future auth implementation)
   final Link link = httpLink;
   
-  // Configure optimized cache
+  // Configure optimized cache with memory-first strategy
   final GraphQLCache cache = GraphQLCache(
     store: HiveStore(),
     partialDataPolicy: PartialDataCachePolicy.accept, // Accept partial data for better UX
+    dataIdFromObject: (data) {
+      // Optimize cache key generation
+      if (data.containsKey('id')) {
+        return data['id'] as String?;
+      }
+      return null;
+    },
   );
   
-  // Create client with optimizations
+  // Create client with aggressive caching for performance
   return GraphQLClient(
     link: link,
     cache: cache,
     defaultPolicies: DefaultPolicies(
       query: Policies(
-        fetch: FetchPolicy.cacheFirst, // Try cache first for better performance
+        fetch: FetchPolicy.cacheAndNetwork, // Return cache immediately, then update
         error: ErrorPolicy.all, // Return both data and errors
         cacheReread: CacheRereadPolicy.mergeOptimistic, // Merge cache updates
       ),
@@ -36,8 +50,12 @@ Future<GraphQLClient> initGraphQLClient() async {
         fetch: FetchPolicy.noCache,
         error: ErrorPolicy.all,
       ),
+      subscribe: Policies(
+        fetch: FetchPolicy.noCache,
+        error: ErrorPolicy.all,
+      ),
     ),
-    queryRequestTimeout: const Duration(seconds: 30), // Add timeout
+    queryRequestTimeout: const Duration(seconds: 15), // Reduced timeout for better UX
   );
 }
 

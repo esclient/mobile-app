@@ -121,7 +121,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -166,7 +166,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
           top: BorderSide(
             color: _isFocused 
               ? const Color(0xFF374151)
-              : const Color(0xFF374151).withOpacity(0.5),
+              : const Color(0xFF374151).withValues(alpha: 0.5),
             width: _isFocused ? 2 : 1,
           ),
         ),
@@ -205,13 +205,13 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                         decoration: InputDecoration(
                           hintText: 'Написать комментарий...',
                           hintStyle: TextStyle(
-                            color: const Color(0xFF9CA3AF).withOpacity(0.8),
+                            color: const Color(0xFF9CA3AF).withValues(alpha: 0.8),
                             fontSize: 14,
                           ),
                           filled: true,
                           fillColor: _isFocused 
                             ? const Color(0xFF181F2A)
-                            : const Color(0xFF181F2A).withOpacity(0.8),
+                            : const Color(0xFF181F2A).withValues(alpha: 0.8),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
                             borderSide: BorderSide.none,
@@ -260,7 +260,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                                 child: CircularProgressIndicator(
                                   strokeWidth: 3,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    const Color(0xFF9CA3AF).withOpacity(0.6),
+                                    const Color(0xFF9CA3AF).withValues(alpha: 0.6),
                                   ),
                                 ),
                               )
@@ -285,17 +285,17 @@ class _CommentInputWidgetState extends State<CommentInputWidget> with SingleTick
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: isAtLimit
-                            ? const Color(0xFFEF4444).withOpacity(0.2)
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.2)
                             : isNearLimit
-                                ? const Color(0xFFF59E0B).withOpacity(0.2)
-                                : const Color(0xFF181F2A).withOpacity(0.5),
+                                ? const Color(0xFFF59E0B).withValues(alpha: 0.2)
+                                : const Color(0xFF181F2A).withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isAtLimit
-                              ? const Color(0xFFEF4444).withOpacity(0.4)
+                              ? const Color(0xFFEF4444).withValues(alpha: 0.4)
                               : isNearLimit
-                                  ? const Color(0xFFF59E0B).withOpacity(0.4)
-                                  : const Color(0xFF374151).withOpacity(0.3),
+                                  ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
+                                  : const Color(0xFF374151).withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),

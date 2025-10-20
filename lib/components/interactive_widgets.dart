@@ -103,7 +103,7 @@ class _OptimizedSearchInputState extends State<OptimizedSearchInput> {
   }
 }
 
-/// Optimized SVG icon with caching
+/// Optimized SVG icon with aggressive caching and error handling
 class SvgIcon extends StatelessWidget {
   final String assetPath;
   final double size;
@@ -118,20 +118,19 @@ class SvgIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      assetPath,
-      width: size,
-      height: size,
-      colorFilter: color != null
-          ? ColorFilter.mode(color!, BlendMode.srcIn)
-          : null,
-      // Enable caching for better performance
-      placeholderBuilder: (context) => SizedBox(
+    return RepaintBoundary(
+      child: SvgPicture.asset(
+        assetPath,
         width: size,
         height: size,
-        child: const CircularProgressIndicator(
-          strokeWidth: 1,
-          color: Color(0xFF9CA3AF),
+        colorFilter: color != null
+            ? ColorFilter.mode(color!, BlendMode.srcIn)
+            : null,
+        // Enable aggressive caching for better performance
+        allowDrawingOutsideViewBox: false,
+        placeholderBuilder: (context) => SizedBox(
+          width: size,
+          height: size,
         ),
       ),
     );
