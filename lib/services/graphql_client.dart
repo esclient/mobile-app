@@ -7,7 +7,7 @@ Future<GraphQLClient> initGraphQLClient() async {
   
   // Configure the HTTP link with timeout
   final HttpLink httpLink = HttpLink(
-    'http://10.0.2.2:8000',
+    'http://10.0.2.2:8000/graphql', 
     defaultHeaders: {
       'Content-Type': 'application/json',
     },

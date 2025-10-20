@@ -29,57 +29,51 @@ class ModsService {
     });
   }
 
-  // GraphQL queries
+  // GraphQL queries - CORRECTED to match your schema
   static const String _getModsQuery = r'''
-    query GetMods($period: String, $limit: Int, $offset: Int) {
-      mods(period: $period, limit: $limit, offset: $offset) {
-        id
-        title
-        description
-        rating
-        ratingsCount
-        imageUrl
-        tags
-        createdAt
-        authorId
-        downloadsCount
+    query GetMods {
+      mod {
+        getMods {
+          id
+          author_id
+          title
+          description
+          version
+          status
+          created_at
+        }
       }
     }
   ''';
 
   static const String _searchModsQuery = r'''
-    query SearchMods($query: String!, $limit: Int, $offset: Int) {
-      searchMods(query: $query, limit: $limit, offset: $offset) {
-        id
-        title
-        description
-        rating
-        ratingsCount
-        imageUrl
-        tags
-        createdAt
-        authorId
-        downloadsCount
+    query SearchMods {
+      mod {
+        getMods {
+          id
+          author_id
+          title
+          description
+          version
+          status
+          created_at
+        }
       }
     }
   ''';
 
   static const String _getModQuery = r'''
-    query GetMod($id: String!) {
-      mod(id: $id) {
-        id
-        title
-        description
-        rating
-        ratingsCount
-        imageUrl
-        tags
-        createdAt
-        authorId
-        downloadsCount
-        longDescription
-        screenshots
-        requirements
+    query GetMod($modId: ID!) {
+      mod {
+        getMod(input: { mod_id: $modId }) {
+          id
+          author_id
+          title
+          description
+          version
+          status
+          created_at
+        }
       }
     }
   ''';
@@ -90,42 +84,51 @@ class ModsService {
     int limit = 20,
     int offset = 0,
   }) async {
-    final cacheKey = '$period-$limit-$offset';
+    print('🔵 ModsService: fetchMods called');
+    const cacheKey = 'all_mods';
 
     // Check cache first
     if (_isCacheValid(cacheKey)) {
+      print('✅ Cache hit for key: $cacheKey (${_modsCache[cacheKey]!.length} mods)');
       return _modsCache[cacheKey]!;
     }
 
+    print('🔵 Cache miss, fetching from API...');
+    
     try {
       final QueryOptions options = QueryOptions(
         document: gql(_getModsQuery),
-        variables: {
-          'period': period,
-          'limit': limit,
-          'offset': offset,
-        },
-        fetchPolicy: FetchPolicy.cacheFirst,
+        fetchPolicy: FetchPolicy.networkOnly,
       );
 
+      print('🔵 Executing GraphQL query...');
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
 
+      print('🔵 Response received');
+      print('🔵 Has exception: ${result.hasException}');
+      print('🔵 Data: ${result.data}');
+
       if (result.hasException && result.data == null) {
-        log('GraphQL error: ${result.exception}');
+        print('🔴 GraphQL error: ${result.exception}');
+        print('🔴 Returning fallback mods');
         return _getFallbackMods();
       }
 
-      final List<dynamic> modsData = result.data?['mods'] ?? [];
+      final List<dynamic> modsData = result.data?['mod']?['getMods'] ?? [];
+      print('🟢 Successfully fetched ${modsData.length} mods from API');
+      
       final List<ModItem> mods = modsData
           .map((json) => ModItem.fromJson(json))
           .toList();
 
       // Cache the results
       _updateCache(cacheKey, mods);
+      print('✅ Cached ${mods.length} mods with key: $cacheKey');
 
       return mods;
     } catch (e) {
-      log('Error fetching mods: $e');
+      print('🔴 Error fetching mods: $e');
+      print('🔴 Returning fallback mods');
       return _getFallbackMods();
     }
   }
@@ -149,9 +152,7 @@ class ModsService {
 
   /// Search mods with retry logic
   Future<List<ModItem>> searchMods(String query) async {
-    if (query
-        .trim()
-        .isEmpty) {
+    if (query.trim().isEmpty) {
       return fetchMods();
     }
 
@@ -163,14 +164,11 @@ class ModsService {
     }
 
     try {
+      // Note: Your API doesn't support search filtering yet
+      // This will return all mods and filter client-side
       final QueryOptions options = QueryOptions(
         document: gql(_searchModsQuery),
-        variables: {
-          'query': query,
-          'limit': 50,
-          'offset': 0,
-        },
-        fetchPolicy: FetchPolicy.cacheFirst,
+        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
@@ -180,15 +178,22 @@ class ModsService {
         return _getFallbackSearch(query);
       }
 
-      final List<dynamic> modsData = result.data?['searchMods'] ?? [];
-      final List<ModItem> mods = modsData
+      final List<dynamic> modsData = result.data?['mod']?['getMods'] ?? [];
+      final List<ModItem> allMods = modsData
           .map((json) => ModItem.fromJson(json))
           .toList();
 
-      // Cache the search results
-      _updateCache(cacheKey, mods);
+      // Client-side filtering
+      final List<ModItem> filteredMods = allMods
+          .where((mod) =>
+              mod.title.toLowerCase().contains(query.toLowerCase()) ||
+              mod.description.toLowerCase().contains(query.toLowerCase()))
+          .toList();
 
-      return mods;
+      // Cache the search results
+      _updateCache(cacheKey, filteredMods);
+
+      return filteredMods;
     } catch (e) {
       log('Error searching mods: $e');
       return _getFallbackSearch(query);
@@ -200,8 +205,8 @@ class ModsService {
     try {
       final QueryOptions options = QueryOptions(
         document: gql(_getModQuery),
-        variables: {'id': id},
-        fetchPolicy: FetchPolicy.cacheFirst,
+        variables: {'modId': id},
+        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
@@ -211,7 +216,7 @@ class ModsService {
         return null;
       }
 
-      final dynamic modData = result.data?['mod'];
+      final dynamic modData = result.data?['mod']?['getMod'];
       if (modData == null) return null;
 
       return ModItem.fromJson(modData);
@@ -225,11 +230,6 @@ class ModsService {
   Future<void> prefetchPopularMods() async {
     final options = QueryOptions(
       document: gql(_getModsQuery),
-      variables: {
-        'period': 'week',
-        'limit': 10,
-        'offset': 0,
-      },
     );
 
     await _graphqlHelper.prefetchQuery(options);
@@ -262,20 +262,19 @@ class ModsService {
   List<ModItem> _getFallbackMods() {
     return [
       ModItem(
-        id: 'fallback_1',
+        id: '-1',
         title: 'Enhanced Graphics Pack',
         description: 'Offline fallback - Improves visual quality with better textures, lighting, and effects. Perfect for immersive gameplay experience.',
         rating: 4.8,
         ratingsCount: 5432,
         imageUrl: 'lib/icons/main/mod_test_pfp.png',
-        // Local fallback
         tags: ['Graphics', 'Visual', 'Enhancement', 'Quality'],
         createdAt: DateTime.now().subtract(const Duration(days: 30)),
         authorId: 'fallback_author_1',
         downloadsCount: 15420,
       ),
       ModItem(
-        id: 'fallback_2',
+        id: '-2',
         title: 'Ultimate Gameplay Mod',
         description: 'Offline fallback - Complete gameplay overhaul with new mechanics, improved AI, and balanced difficulty.',
         rating: 4.6,
@@ -287,7 +286,7 @@ class ModsService {
         downloadsCount: 8765,
       ),
       ModItem(
-        id: 'fallback_3',
+        id: '-3',
         title: 'Audio Enhancement Suite',
         description: 'Offline fallback - High-quality audio improvements with better sound effects and ambient audio.',
         rating: 4.3,
@@ -306,9 +305,9 @@ class ModsService {
     final fallbackMods = _getFallbackMods();
     return fallbackMods
         .where((mod) =>
-    mod.title.toLowerCase().contains(query.toLowerCase()) ||
-        mod.description.toLowerCase().contains(query.toLowerCase()) ||
-        mod.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase())))
+            mod.title.toLowerCase().contains(query.toLowerCase()) ||
+            mod.description.toLowerCase().contains(query.toLowerCase()) ||
+            mod.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase())))
         .toList();
   }
 

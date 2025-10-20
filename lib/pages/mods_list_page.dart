@@ -7,6 +7,9 @@ import '../components/interactive_widgets.dart';
 import '../components/app_bottom_nav_bar.dart';
 import '../components/app_header.dart';
 import '../services/service_locator.dart';
+import '../widgets/comment_card.dart';
+import '../providers/comments_provider.dart';
+import '../widgets/comment_input_widget.dart';
 
 class ModsListPage extends StatefulWidget {
   const ModsListPage({super.key});
@@ -383,7 +386,7 @@ class _ModsListPageState extends State<ModsListPage>
 }
 
 // Separate widget for mod details to optimize performance
-class _ModDetailsSheet extends StatelessWidget {
+class _ModDetailsSheet extends StatefulWidget {
   final ModItem mod;
   final ValueChanged<String> onTagPressed;
   
@@ -391,68 +394,205 @@ class _ModDetailsSheet extends StatelessWidget {
     required this.mod,
     required this.onTagPressed,
   });
+
+  @override
+  State<_ModDetailsSheet> createState() => _ModDetailsSheetState();
+}
+
+class _ModDetailsSheetState extends State<_ModDetailsSheet> {
+  @override
+  void initState() {
+    super.initState();
+    print('🔵 MOD DETAILS SHEET OPENED FOR MOD:  [38;5;27m${widget.mod.id} [0m');
+    // Load comments when sheet opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('🔵 Post frame callback executed');
+      try {
+        final provider = context.read<CommentsProvider>();
+        print('🔵 Provider found: $provider');
+        print('🔵 CALLING loadComments for mod: ${widget.mod.id}');
+        provider.loadComments(widget.mod.id);
+      } catch (e) {
+        print('🔴 ERROR getting provider: $e');
+      }
+    });
+  }
   
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: Color(0xFF1F2937),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          // Handle bar
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF9CA3AF),
-              borderRadius: BorderRadius.circular(2),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1F2937),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF9CA3AF),
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Описание:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text(
-                        mod.description,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  // Important: reverse = true is NOT needed here for bottom alignment
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 20),
+                      Text(
+                        widget.mod.description,
                         style: const TextStyle(
                           color: Color(0xFFD1D5DB),
                           fontSize: 14,
                           height: 1.5,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      if (widget.mod.tags.isNotEmpty) ...[
+                        _buildTags(context),
+                        const SizedBox(height: 20),
+                      ],
+                      _buildDownloadButton(context),
+                      const SizedBox(height: 20),
+                      _buildCommentsHeader(),
+                      const SizedBox(height: 10),
+                      _buildCommentsSection(),
+                      const SizedBox(height: 12), // Было 80
+                    ],
                   ),
-                  const SizedBox(height: 15),
-                  if (mod.tags.isNotEmpty) ...[
-                    _buildTags(context),
-                    const SizedBox(height: 20),
-                  ],
-                  _buildDownloadButton(context),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: CommentInputWidget(modId: widget.mod.id),
+      ),
+    );
+  }
+  
+  Widget _buildCommentsSection() {
+    return Consumer<CommentsProvider>(
+      builder: (context, commentsProvider, child) {
+        // Show loading
+        if (commentsProvider.isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(
+                color: Color(0xFF388E3C),
+              ),
+            ),
+          );
+        }
+        
+        // Show error
+        if (commentsProvider.error != null) {
+          return Center(
+            child: Column(
+              children: [
+                Text(
+                  commentsProvider.error!,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                PeriodButton(
+                  text: 'Попробовать снова',
+                  onPressed: () {
+                    commentsProvider.loadComments(widget.mod.id);
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+        
+        // Show empty state
+        if (commentsProvider.comments.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'Нет комментариев',
+                style: TextStyle(
+                  color: Color(0xFF9CA3AF),
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          );
+        }
+        
+        // Show comments list
+         return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: commentsProvider.comments.length,
+          itemBuilder: (context, index) {
+            final authService = ServiceLocator().authService;
+            return CommentCard(
+              comment: commentsProvider.comments[index],
+              currentUserId: authService.currentUserId,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCommentsHeader() {
+    return Consumer<CommentsProvider>(
+      builder: (context, commentsProvider, child) {
+        final count = commentsProvider.comments.length;
+        return Row(
+          children: [
+            const Text(
+              'Комментарии',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF374151),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                count.toString(),
+                style: const TextStyle(
+                  color: Color(0xFFE5E7EB),
+                  fontSize: 12,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
   
@@ -460,7 +600,7 @@ class _ModDetailsSheet extends StatelessWidget {
     return Row(
       children: [
         Hero(
-          tag: 'mod_image_${mod.id}',
+          tag: 'mod_image_${widget.mod.id}',
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Image.asset(
@@ -489,7 +629,7 @@ class _ModDetailsSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                mod.title,
+                widget.mod.title,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -497,20 +637,42 @@ class _ModDetailsSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 5),
-              Text(
-                'Автор: ${mod.authorId}',
-                style: const TextStyle(
-                  color: Color(0xFF9CA3AF),
-                  fontSize: 14,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF374151), width: 1),
+                    ),
+                    child: const CircleAvatar(
+                      backgroundColor: Color(0xFF1F2937),
+                      child: Icon(Icons.person, size: 16, color: Color(0xFF9CA3AF)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.mod.authorId,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 5),
               Row(
                 children: [
-                  StarRating(rating: mod.rating, starSize: 12),
+                  StarRating(rating: widget.mod.rating, starSize: 12),
                   const SizedBox(width: 4),
                   Text(
-                    mod.rating.toStringAsFixed(1),
+                    widget.mod.rating.toStringAsFixed(1),
                     style: const TextStyle(
                       color: Color(0xFFF59E0B),
                       fontSize: 14,
@@ -520,7 +682,7 @@ class _ModDetailsSheet extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      '(${mod.formattedRatingsCount})',
+                      '(${widget.mod.formattedRatingsCount})',
                       style: const TextStyle(
                         color: Color(0xFF9CA3AF),
                         fontSize: 12,
@@ -528,13 +690,24 @@ class _ModDetailsSheet extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Text(
-                    '${mod.formattedDownloadsCount}',
-                    style: const TextStyle(
-                      color: Color(0xFF9CA3AF),
-                      fontSize: 12,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.download_rounded,
+                        size: 14,
+                        color: Color(0xFF9CA3AF),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.mod.formattedDownloadsCount,
+                        style: const TextStyle(
+                          color: Color(0xFF9CA3AF),
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -549,12 +722,12 @@ class _ModDetailsSheet extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: mod.tags.map((tag) {
+      children: widget.mod.tags.map((tag) {
         return InteractiveTag(
           text: tag,
           onPressed: () {
             Navigator.of(context).pop();
-            onTagPressed('#$tag');
+            widget.onTagPressed('#$tag');
           },
         );
       }).toList(),
@@ -572,7 +745,7 @@ class _ModDetailsSheet extends StatelessWidget {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Скачивание "${mod.title}" началось'),
+              content: Text('Скачивание "${widget.mod.title}" началось'),
               backgroundColor: const Color(0xFF388E3C),
               duration: const Duration(seconds: 2),
             ),

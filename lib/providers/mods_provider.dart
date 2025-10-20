@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import '../model/mod_item.dart';
 import '../services/mods_service.dart';
 import 'dart:developer';
+import 'dart:async';
 
 /// Provider for managing mods state with optimized data handling
 class ModsProvider extends ChangeNotifier {
   final ModsService _modsService;
+  StreamSubscription? _searchSubscription;
   
   ModsProvider(this._modsService) {
     _initializeProvider();
@@ -42,11 +44,12 @@ class ModsProvider extends ChangeNotifier {
   Future<void> loadMods({String period = 'all_time'}) async {
     if (_isLoading) return;
     
-    _setLoading(true);
+    _isLoading = true;
     _error = null;
     _currentPeriod = period;
     _currentOffset = 0;
     _hasMoreMods = true;
+    notifyListeners();
     
     try {
       final newMods = await _modsService.fetchMods(
@@ -58,12 +61,12 @@ class ModsProvider extends ChangeNotifier {
       _mods = newMods;
       _hasMoreMods = newMods.length == _pageSize;
       _currentOffset = newMods.length;
-      
-      notifyListeners();
     } catch (e) {
-      _setError('Failed to load mods: ${e.toString()}');
+      log('Error loading mods: $e');
+      _error = 'Failed to load mods: ${e.toString()}';
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -71,7 +74,9 @@ class ModsProvider extends ChangeNotifier {
   Future<void> loadMoreMods() async {
     if (_isLoading || !_hasMoreMods || _currentSearchQuery.isNotEmpty) return;
     
-    _setLoading(true);
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
     
     try {
       final newMods = await _modsService.fetchMods(
@@ -83,12 +88,12 @@ class ModsProvider extends ChangeNotifier {
       _mods.addAll(newMods);
       _hasMoreMods = newMods.length == _pageSize;
       _currentOffset += newMods.length;
-      
-      notifyListeners();
     } catch (e) {
-      _setError('Failed to load more mods: ${e.toString()}');
+      log('Error loading more mods: $e');
+      _error = 'Failed to load more mods: ${e.toString()}';
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -101,22 +106,30 @@ class ModsProvider extends ChangeNotifier {
       return;
     }
     
-    _setSearching(true);
+    // Cancel previous search subscription
+    _searchSubscription?.cancel();
+    
+    _isSearching = true;
+    _error = null;
+    notifyListeners();
+    
     _modsService.triggerSearch(query);
     
     // Listen to search results
-    _modsService.searchModsStream(query).listen(
+    _searchSubscription = _modsService.searchModsStream(query).listen(
       (results) {
         if (_currentSearchQuery == query) { // Only update if still current query
           _searchResults = results;
-          _setSearching(false);
+          _isSearching = false;
           notifyListeners();
         }
       },
       onError: (error) {
         if (_currentSearchQuery == query) {
-          _setError('Search failed: ${error.toString()}');
-          _setSearching(false);
+          log('Search error: $error');
+          _error = 'Search failed: ${error.toString()}';
+          _isSearching = false;
+          notifyListeners();
         }
       },
     );
@@ -124,6 +137,7 @@ class ModsProvider extends ChangeNotifier {
 
   /// Clear search and return to main mods list
   void clearSearch() {
+    _searchSubscription?.cancel();
     _clearSearch();
     notifyListeners();
   }
@@ -163,7 +177,9 @@ class ModsProvider extends ChangeNotifier {
     try {
       return await _modsService.fetchMod(id);
     } catch (e) {
-      _setError('Failed to fetch mod: ${e.toString()}');
+      log('Error fetching mod: $e');
+      _error = 'Failed to fetch mod: ${e.toString()}';
+      notifyListeners();
       return null;
     }
   }
@@ -180,23 +196,9 @@ class ModsProvider extends ChangeNotifier {
     log('Report mod $modId for: $reason');
   }
 
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setSearching(bool searching) {
-    _isSearching = searching;
-    notifyListeners();
-  }
-
-  void _setError(String error) {
-    _error = error;
-    notifyListeners();
-  }
-
   @override
   void dispose() {
+    _searchSubscription?.cancel();
     _modsService.dispose();
     super.dispose();
   }

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-// import 'improved_search_bar.dart'; // Unused import removed
 
 /// Optimized search input with debouncing
 class OptimizedSearchInput extends StatefulWidget {
@@ -161,12 +160,34 @@ class StarRating extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(maxStars, (index) {
-        final starRating = index + 1;
-        final isFilled = starRating <= rating;
-        return SvgIcon(
+        // Determine fill fraction for this star: 0.0..1.0
+        final double fill = (rating - index).clamp(0.0, 1.0);
+
+        // Base (inactive) star
+        final Widget baseStar = SvgIcon(
           assetPath: 'lib/icons/rating/star.svg',
           size: starSize,
-          color: isFilled ? activeColor : inactiveColor,
+          color: inactiveColor,
+        );
+
+        // Active (filled) star clipped to fraction width
+        final Widget filledStar = ClipRect(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            widthFactor: fill <= 0 ? 0 : (fill >= 1 ? 1 : fill),
+            child: SvgIcon(
+              assetPath: 'lib/icons/rating/star.svg',
+              size: starSize,
+              color: activeColor,
+            ),
+          ),
+        );
+
+        return Stack(
+          children: [
+            baseStar,
+            filledStar,
+          ],
         );
       }),
     );

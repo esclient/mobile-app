@@ -5,6 +5,7 @@ class AppColors {
   static const int border = 0xFF374151;
   static const int accent = 0xFF388E3C;
   static const int warning = 0xFFF59E0B;
+  static const int error = 0xFFEF4444;
   static const int textPrimary = 0xFFFFFFFF;
   static const int textSecondary = 0xFFD1D5DB;
   static const int textMuted = 0xFF9CA3AF;
