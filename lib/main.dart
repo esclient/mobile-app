@@ -77,9 +77,23 @@ class CommentsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.navComments)),
-      body: const CommentsList(),
+    return const Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: _CommentsAppBar(),
+      ),
+      body: CommentsList(),
+    );
+  }
+}
+
+class _CommentsAppBar extends StatelessWidget {
+  const _CommentsAppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text(AppStrings.navComments),
     );
   }
 }
@@ -93,7 +107,8 @@ class CommentsList extends StatefulWidget {
 
 class _CommentsListState extends State<CommentsList>
     with AutomaticKeepAliveClientMixin {
-  final String _modId = '69';
+  
+  static const String _modId = '69';
 
   @override
   bool get wantKeepAlive => true;
@@ -110,44 +125,19 @@ class _CommentsListState extends State<CommentsList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Consumer<CommentsProvider>(
-      builder: (context, provider, child) {
-        final header = Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              const Text(
-                'Комментарии',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF374151),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  provider.comments.length.toString(),
-                  style: const TextStyle(
-                    color: Color(0xFFE5E7EB),
-                    fontSize: 12,
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+    final authService = context.read<AuthService>();
 
-        if (provider.isLoading && provider.comments.isEmpty) {
+    // ✅ FIX: Use Selector to only rebuild on specific changes
+    return Selector<CommentsProvider, ({List comments, bool isLoading, String? error})>(
+      selector: (_, provider) => (
+        comments: provider.comments,
+        isLoading: provider.isLoading,
+        error: provider.error,
+      ),
+      builder: (context, data, child) {
+        final header = child!;
+
+        if (data.isLoading && data.comments.isEmpty) {
           return Column(
             children: [
               header,
@@ -160,20 +150,20 @@ class _CommentsListState extends State<CommentsList>
           );
         }
 
-        if (provider.error != null && provider.comments.isEmpty) {
+        if (data.error != null && data.comments.isEmpty) {
           return Column(
             children: [
               header,
-              Expanded(child: _buildErrorWidget(provider.error!, provider)),
+              Expanded(child: _buildErrorWidget(data.error!)),
             ],
           );
         }
 
-        if (provider.comments.isEmpty) {
+        if (data.comments.isEmpty) {
           return Column(
             children: [
               header,
-              Expanded(child: _buildEmptyWidget()),
+              const Expanded(child: _EmptyCommentsWidget()),
             ],
           );
         }
@@ -185,7 +175,7 @@ class _CommentsListState extends State<CommentsList>
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  await provider.loadComments(_modId);
+                  await context.read<CommentsProvider>().loadComments(_modId);
                 },
                 color: const Color(0xFF388E3C),
                 backgroundColor: const Color(0xFF374151),
@@ -194,21 +184,22 @@ class _CommentsListState extends State<CommentsList>
                     horizontal: AppSizes.paddingMedium,
                     vertical: 0,
                   ),
-                  itemCount: provider.comments.length,
-                  cacheExtent: 1000,
-                  addAutomaticKeepAlives: false,
-                  addRepaintBoundaries: false,
+                  itemCount: data.comments.length,
+                  cacheExtent: 1000, // ✅ FIX: Increased cache
+                  addAutomaticKeepAlives: true,
+                  addRepaintBoundaries: true,
                   itemBuilder: (context, index) {
-                    final comment = provider.comments[index];
+                    final comment = data.comments[index];
                     return Padding(
+                      key: ValueKey('comment_${comment.id}'),
                       padding: EdgeInsets.only(
-                        bottom: index < provider.comments.length - 1
+                        bottom: index < data.comments.length - 1
                             ? AppSizes.spacing
                             : 0,
                       ),
                       child: CommentCard(
                         comment: comment,
-                        currentUserId: ServiceLocator().authService.currentUserId,
+                        currentUserId: authService.currentUserId,
                         onTap: () {
                           // Handle comment tap if needed
                         },
@@ -221,10 +212,11 @@ class _CommentsListState extends State<CommentsList>
           ],
         );
       },
+      child: const _CommentsHeader(), // ✅ FIX: Made const
     );
   }
 
-  Widget _buildErrorWidget(String error, CommentsProvider provider) {
+  Widget _buildErrorWidget(String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -239,7 +231,7 @@ class _CommentsListState extends State<CommentsList>
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              provider.loadComments(_modId);
+              context.read<CommentsProvider>().loadComments(_modId);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF388E3C),
@@ -251,8 +243,14 @@ class _CommentsListState extends State<CommentsList>
       ),
     );
   }
+}
 
-  Widget _buildEmptyWidget() {
+// ✅ FIX: Extracted empty widget as const
+class _EmptyCommentsWidget extends StatelessWidget {
+  const _EmptyCommentsWidget();
+
+  @override
+  Widget build(BuildContext context) {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -262,6 +260,53 @@ class _CommentsListState extends State<CommentsList>
           Text(
             'Комментарии не найдены',
             style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommentsHeader extends StatelessWidget {
+  const _CommentsHeader(); // ✅ FIX: Made const constructor
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          const Text(
+            'Комментарии',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Selector<CommentsProvider, int>(
+            selector: (_, provider) => provider.comments.length,
+            builder: (context, count, child) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF374151),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  count.toString(),
+                  style: const TextStyle(
+                    color: Color(0xFFE5E7EB),
+                    fontSize: 12,
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

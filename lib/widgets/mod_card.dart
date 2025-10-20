@@ -16,6 +16,7 @@ class ModCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
+      key: ValueKey('repaint_${mod.id}'),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -45,19 +46,22 @@ class ModCard extends StatelessWidget {
     );
   }
 
+  // ✅ FIX: Wrapped in RepaintBoundary to isolate repaints
   Widget _buildLeftSection() {
-    return Column(
-      children: [
-        Hero(
-          tag: 'mod_image_${mod.id}',
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: _buildModImage(),
+    return RepaintBoundary(
+      child: Column(
+        children: [
+          Hero(
+            tag: 'mod_image_${mod.id}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: _buildModImage(),
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        _buildRatingSection(),
-      ],
+          const SizedBox(height: 6),
+          _buildRatingSection(),
+        ],
+      ),
     );
   }
 
@@ -72,8 +76,8 @@ class ModCard extends StatelessWidget {
         maxWidthDiskCache: 144,
         maxHeightDiskCache: 144,
         fit: BoxFit.cover,
-        fadeInDuration: const Duration(milliseconds: 200),
-        fadeOutDuration: const Duration(milliseconds: 100),
+        fadeInDuration: const Duration(milliseconds: 150), // ✅ FIX: Reduced from 200ms
+        fadeOutDuration: const Duration(milliseconds: 75), // ✅ FIX: Reduced from 100ms
         placeholder: (context, url) => Container(
           width: 48,
           height: 48,
@@ -106,6 +110,10 @@ class ModCard extends StatelessWidget {
         width: 48,
         height: 48,
         fit: BoxFit.cover,
+        cacheWidth: 144,
+        cacheHeight: 144,
+        // ✅ FIX: Added gaplessPlayback for smoother loading
+        gaplessPlayback: true,
         errorBuilder: (context, error, stackTrace) {
           return Container(
             width: 48,
@@ -209,18 +217,25 @@ class _TagsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayTags = tags.length > 5 ? tags.sublist(0, 5) : tags;
+    
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      itemCount: tags.length > 5 ? 5 : tags.length,
+      itemCount: displayTags.length,
+      addAutomaticKeepAlives: false,
+      addRepaintBoundaries: false,
+      // ✅ FIX: Added cacheExtent for better scroll performance
+      cacheExtent: 200,
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.only(right: 6),
           child: InteractiveTag(
-            text: tags[index],
+            key: ValueKey('tag_${tags[index]}_$index'),
+            text: displayTags[index],
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Фильтр по тегу "${tags[index]}"'),
+                  content: Text('Фильтр по тегу "${displayTags[index]}"'),
                   duration: const Duration(seconds: 2),
                   backgroundColor: const Color(0xFF388E3C),
                 ),
