@@ -5,20 +5,9 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import '../model/mod_item.dart';
 import 'graphql_client.dart';
 
+/// Parse mods data in isolate for better performance on large datasets
 List<ModItem> _parseModsInIsolate(List<dynamic> jsonList) {
   return jsonList.map((json) => ModItem.fromJson(json)).toList();
-}
-
-List<ModItem> _filterModsInIsolate(Map<String, dynamic> params) {
-  final List<ModItem> mods = params['mods'] as List<ModItem>;
-  final String query = params['query'] as String;
-  final lowerQuery = query.toLowerCase();
-  
-  return mods.where((mod) {
-    return mod.title.toLowerCase().contains(lowerQuery) ||
-           mod.description.toLowerCase().contains(lowerQuery) ||
-           mod.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
-  }).toList();
 }
 
 class ModsService {
@@ -100,6 +89,7 @@ class ModsService {
   }) async {
     const cacheKey = 'all_mods';
 
+    // Return cache immediately if valid for instant display
     if (_isCacheValid(cacheKey)) {
       return _modsCache[cacheKey]!;
     }
@@ -107,7 +97,7 @@ class ModsService {
     try {
       final QueryOptions options = QueryOptions(
         document: gql(_getModsQuery),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.cacheFirst, // Try cache first
       );
 
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
@@ -118,7 +108,15 @@ class ModsService {
       }
 
       final List<dynamic> modsData = result.data?['mod']?['getMods'] ?? [];
-      final List<ModItem> mods = await compute(_parseModsInIsolate, modsData);
+      
+      // Parse in isolate only for large datasets (> 10 items)
+      final List<ModItem> mods;
+      if (modsData.length > 10) {
+        mods = await compute(_parseModsInIsolate, modsData);
+      } else {
+        mods = _parseModsInIsolate(modsData);
+      }
+      
       _updateCache(cacheKey, mods);
 
       return mods;
@@ -147,6 +145,7 @@ class ModsService {
 
     final cacheKey = 'search-$query';
 
+    // Return cache immediately if valid
     if (_isCacheValid(cacheKey)) {
       return _modsCache[cacheKey]!;
     }
@@ -154,7 +153,7 @@ class ModsService {
     try {
       final QueryOptions options = QueryOptions(
         document: gql(_searchModsQuery),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.cacheFirst, // Try cache first
       );
 
       final QueryResult result = await _graphqlHelper.queryWithRetry(options);
@@ -165,11 +164,23 @@ class ModsService {
       }
 
       final List<dynamic> modsData = result.data?['mod']?['getMods'] ?? [];
-      final List<ModItem> allMods = await compute(_parseModsInIsolate, modsData);
-      final List<ModItem> filteredMods = await compute(
-        _filterModsInIsolate,
-        {'mods': allMods, 'query': query},
-      );
+      
+      // Parse and filter - use isolate only for large datasets
+      final List<ModItem> allMods;
+      if (modsData.length > 10) {
+        allMods = await compute(_parseModsInIsolate, modsData);
+      } else {
+        allMods = _parseModsInIsolate(modsData);
+      }
+      
+      // Filter locally for better performance
+      final lowerQuery = query.toLowerCase();
+      final List<ModItem> filteredMods = allMods.where((mod) {
+        return mod.title.toLowerCase().contains(lowerQuery) ||
+               mod.description.toLowerCase().contains(lowerQuery) ||
+               mod.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
+      }).toList();
+      
       _updateCache(cacheKey, filteredMods);
 
       return filteredMods;

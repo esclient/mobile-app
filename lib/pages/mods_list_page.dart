@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import '../model/mod_item.dart';
 import '../providers/mods_provider.dart';
@@ -37,8 +38,10 @@ class _ModsListPageState extends State<ModsListPage>
   void initState() {
     super.initState();
     
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ModsProvider>().loadMods();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ModsProvider>().loadMods();
+      }
     });
     
     _scrollController.addListener(_onScroll);
@@ -347,10 +350,10 @@ class _ModsListContent extends StatelessWidget {
           backgroundColor: const Color(0xFF374151),
           child: ListView.builder(
             controller: scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             itemCount: currentMods.length + (data.isLoadingMore ? 1 : 0),
             itemExtent: modCardHeight + 10,
-            cacheExtent: 1000, // ✅ FIX: Increased from 500
+            cacheExtent: 2000, // ✅ FIX: Increased for better performance
             addAutomaticKeepAlives: true,
             addRepaintBoundaries: true,
             itemBuilder: (context, index) {

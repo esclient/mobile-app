@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'providers/comments_provider.dart';
@@ -11,19 +12,148 @@ import 'services/auth_service.dart';
 import 'services/service_locator.dart';
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';
+import 'utils/app_config.dart';
+import 'utils/performance_utils.dart';
 import 'widgets/comment_card.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set frame scheduling priority for smoother animations
+  SchedulerBinding.instance.scheduleForcedFrame();
 
-  await Hive.initFlutter();
+  // Initialize Hive in background
+  final hiveFuture = Hive.initFlutter();
+  
+  // Initialize app configuration
+  await AppConfig.initialize();
 
+  // Create service locator but don't wait for full initialization
   final serviceLocator = ServiceLocator();
-  await serviceLocator.initialize();
+  
+  // Run app immediately with splash screen while loading
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: SplashScreen(
+      hiveFuture: hiveFuture,
+      serviceLocator: serviceLocator,
+    ),
+  ));
+}
 
-  serviceLocator.authService.login('test@example.com', userId: '999');
+class SplashScreen extends StatefulWidget {
+  final Future hiveFuture;
+  final ServiceLocator serviceLocator;
 
-  runApp(MyApp(serviceLocator: serviceLocator));
+  const SplashScreen({super.key, required this.hiveFuture, required this.serviceLocator});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      await widget.hiveFuture;
+      
+      // Initialize services in parallel for faster startup
+      await Future.wait([
+        widget.serviceLocator.initialize(),
+        // Add small delay to ensure smooth animation
+        Future.delayed(const Duration(milliseconds: 500)),
+      ]);
+      
+      widget.serviceLocator.authService.login('test@example.com', userId: '999');
+      
+      if (mounted) {
+        // Schedule navigation to next frame for smoother transition
+        PerformanceUtils.runInNextFrame(() {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => 
+                MyApp(serviceLocator: widget.serviceLocator),
+              transitionDuration: const Duration(milliseconds: 300),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+            ),
+          );
+        });
+      }
+    } catch (e) {
+      // Handle initialization error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Initialization failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1F2937),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: const Color(0xFF374151),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: const Icon(
+                Icons.rocket_launch,
+                size: 60,
+                color: Color(0xFF388E3C),
+              ),
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              'ESClient',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Loading mods...',
+              style: TextStyle(
+                color: Color(0xFF9CA3AF),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 30),
+            const SizedBox(
+              width: 200,
+              child: LinearProgressIndicator(
+                color: Color(0xFF388E3C),
+                backgroundColor: Color(0xFF374151),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
