@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import '../model/mod_item.dart';
 import '../providers/mods_provider.dart';
+import '../providers/comments_provider.dart';
+import '../services/auth_service.dart';
+import '../services/service_locator.dart';
 import '../widgets/mod_card.dart';
+import '../widgets/comment_card.dart';
+import '../widgets/comment_input_widget.dart';
 import '../components/interactive_widgets.dart';
 import '../components/app_bottom_nav_bar.dart';
 import '../components/app_header.dart';
-import '../services/service_locator.dart';
-import '../widgets/comment_card.dart';
-import '../providers/comments_provider.dart';
-import '../widgets/comment_input_widget.dart';
 
 class ModsListPage extends StatefulWidget {
   const ModsListPage({super.key});
@@ -21,17 +23,14 @@ class ModsListPage extends StatefulWidget {
 class _ModsListPageState extends State<ModsListPage> 
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   
-  // State variables
   int selectedPeriodIndex = 0;
   final ScrollController _scrollController = ScrollController();
   TextEditingController? _searchController;
   
-  // Constants
   static const List<String> periods = ['За всё время', 'За месяц', 'За неделю', 'Недавние'];
   static const List<String> periodKeys = ['all_time', 'month', 'week', 'recent'];
   static const double modCardHeight = 134.0;
   
-  // Keep alive for better performance
   @override
   bool get wantKeepAlive => true;
 
@@ -39,12 +38,12 @@ class _ModsListPageState extends State<ModsListPage>
   void initState() {
     super.initState();
     
-    // Load initial data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ModsProvider>().loadMods();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ModsProvider>().loadMods();
+      }
     });
     
-    // Add scroll listener for pagination
     _scrollController.addListener(_onScroll);
   }
 
@@ -54,20 +53,17 @@ class _ModsListPageState extends State<ModsListPage>
     super.dispose();
   }
   
+  // ✅ FIX: Use debounced method from provider
   void _onScroll() {
-    final modsProvider = context.read<ModsProvider>();
-    
-    // Load more mods when near bottom
     if (_scrollController.position.pixels >= 
         _scrollController.position.maxScrollExtent - 200) {
-      modsProvider.loadMoreMods();
+      context.read<ModsProvider>().requestLoadMoreMods();
     }
   }
 
   void _onSearchChanged(String query) {
     final modsProvider = context.read<ModsProvider>();
     
-    // If search query is empty, clear search and return to default view
     if (query.trim().isEmpty) {
       modsProvider.clearSearch();
       modsProvider.loadMods(period: periodKeys[selectedPeriodIndex]);
@@ -76,17 +72,32 @@ class _ModsListPageState extends State<ModsListPage>
     }
   }
 
+  // ✅ FIX: Method to update period selection
+  void _onPeriodChanged(int index) {
+    if (selectedPeriodIndex != index) {
+      setState(() {
+        selectedPeriodIndex = index;
+      });
+      
+      final modsProvider = context.read<ModsProvider>();
+      modsProvider.clearSearch();
+      modsProvider.loadMods(period: periodKeys[index]);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    super.build(context);
     
     return Scaffold(
       backgroundColor: const Color(0xFF1F2937),
       appBar: AppHeader(
         showActualSearchBar: true,
-        searchQuery: context.watch<ModsProvider>().currentSearchQuery.isEmpty 
-          ? null 
-          : context.watch<ModsProvider>().currentSearchQuery,
+        searchQuery: context.select<ModsProvider, String?>(
+          (provider) => provider.currentSearchQuery.isEmpty 
+            ? null 
+            : provider.currentSearchQuery,
+        ),
         onSearchSubmitted: _onSearchChanged,
         onSearchControllerCreated: (controller) {
           _searchController = controller;
@@ -97,7 +108,11 @@ class _ModsListPageState extends State<ModsListPage>
       ),
       body: Column(
         children: [
-          _buildPeriodSelector(),
+          // ✅ FIX: Pass period state to child
+          _PeriodSelectorWrapper(
+            selectedPeriodIndex: selectedPeriodIndex,
+            onPeriodChanged: _onPeriodChanged,
+          ),
           Expanded(
             child: _buildModsList(),
           ),
@@ -110,81 +125,21 @@ class _ModsListPageState extends State<ModsListPage>
     );
   }
 
-  Widget _buildPeriodSelector() {
-    return Consumer<ModsProvider>(
-      builder: (context, modsProvider, child) {
-        // Hide period selector in search mode
-        if (modsProvider.isSearchMode) {
-          return const SizedBox.shrink();
-        }
-        
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Топ за период',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w700,
-                  height: 1.40,
-                ),
-              ),
-              const SizedBox(height: 15),
-              SizedBox(
-                height: 54,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  itemCount: periods.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: PeriodButton(
-                        text: periods[index],
-                        isSelected: selectedPeriodIndex == index,
-                        onPressed: () => _onPeriodChanged(index),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-  
-  void _onPeriodChanged(int index) {
-    if (selectedPeriodIndex != index) {
-      setState(() {
-        selectedPeriodIndex = index;
-      });
-      
-      final modsProvider = context.read<ModsProvider>();
-      modsProvider.clearSearch(); // Clear search when changing period
-      // Clear the search input field
-      _searchController?.clear();
-      modsProvider.loadMods(period: periodKeys[index]);
-    }
-  }
-
   Widget _buildModsList() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer<ModsProvider>(
-            builder: (context, modsProvider, child) {
+          Selector<ModsProvider, ({bool isSearchMode, String searchQuery})>(
+            selector: (_, provider) => (
+              isSearchMode: provider.isSearchMode,
+              searchQuery: provider.currentSearchQuery,
+            ),
+            builder: (context, data, child) {
               return Text(
-                modsProvider.isSearchMode 
-                    ? 'Результаты поиска "${modsProvider.currentSearchQuery}"'
+                data.isSearchMode 
+                    ? 'Результаты поиска "${data.searchQuery}"'
                     : 'Список модов',
                 style: const TextStyle(
                   color: Colors.white,
@@ -198,155 +153,14 @@ class _ModsListPageState extends State<ModsListPage>
           ),
           const SizedBox(height: 9),
           Expanded(
-            child: _buildListContent(),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildListContent() {
-    return Consumer<ModsProvider>(
-      builder: (context, modsProvider, child) {
-        // Show loading indicator
-        if (modsProvider.isLoading && 
-            (modsProvider.mods.isEmpty && modsProvider.searchResults.isEmpty)) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF388E3C),
+            child: _ModsListContent(
+              scrollController: _scrollController,
+              selectedPeriodIndex: selectedPeriodIndex,
+              onModTap: _onModTap,
+              onSearchChanged: _onSearchChanged,
+              searchController: _searchController,
             ),
-          );
-        }
-        
-        // Show error
-        if (modsProvider.error != null) {
-          return _buildErrorWidget(modsProvider.error!);
-        }
-        
-        // Get the appropriate list of mods
-        final List<ModItem> currentMods = modsProvider.isSearchMode 
-            ? modsProvider.searchResults 
-            : modsProvider.mods;
-        
-        // Show empty state
-        if (currentMods.isEmpty) {
-          return _buildEmptyWidget(modsProvider.isSearchMode, modsProvider.currentSearchQuery);
-        }
-        
-        return RefreshIndicator(
-          onRefresh: () => modsProvider.refreshMods(),
-          color: const Color(0xFF388E3C),
-          backgroundColor: const Color(0xFF374151),
-          child: ListView.builder(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: currentMods.length + (modsProvider.isLoading ? 1 : 0),
-            itemExtent: modCardHeight + 10, // Fixed height for better performance
-            cacheExtent: 500, // Pre-render items for smoother scrolling
-            addAutomaticKeepAlives: false, // Optimize memory usage
-            addRepaintBoundaries: true, // Optimize rendering
-            itemBuilder: (context, index) {
-              // Show loading indicator at the end
-              if (index >= currentMods.length) {
-                return const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF388E3C),
-                    ),
-                  ),
-                );
-              }
-              
-              final mod = currentMods[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: ModCard(
-                  key: ValueKey('mod_${mod.id}'),
-                  mod: mod,
-                  onTap: () => _onModTap(mod),
-                ),
-              );
-            },
           ),
-        );
-      },
-    );
-  }
-  
-  Widget _buildErrorWidget(String error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Color(0xFF9CA3AF),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            error,
-            style: const TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          PeriodButton(
-            text: 'Попробовать снова',
-            onPressed: () {
-              final modsProvider = context.read<ModsProvider>();
-              if (modsProvider.isSearchMode) {
-                modsProvider.searchMods(modsProvider.currentSearchQuery);
-              } else {
-                modsProvider.loadMods(period: periodKeys[selectedPeriodIndex]);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildEmptyWidget(bool isSearchMode, String searchQuery) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgIcon(
-            assetPath: isSearchMode 
-                ? 'lib/icons/header/search.svg'
-                : 'lib/icons/footer/home.svg',
-            size: 64,
-            color: const Color(0xFF9CA3AF),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            isSearchMode 
-                ? 'По запросу "$searchQuery" ничего не найдено'
-                : 'Моды не найдены',
-            style: const TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          if (isSearchMode) ...[
-            const SizedBox(height: 16),
-            PeriodButton(
-              text: 'Показать все моды',
-              onPressed: () {
-                final modsProvider = context.read<ModsProvider>();
-                modsProvider.clearSearch();
-                // Clear search input field
-                _searchController?.clear();
-                // Reload mods with current period
-                modsProvider.loadMods(period: periodKeys[selectedPeriodIndex]);
-              },
-            ),
-          ],
         ],
       ),
     );
@@ -376,16 +190,283 @@ class _ModsListPageState extends State<ModsListPage>
     );
   }
   
-  void _showSettings() {
-    // SnackBar показывается в AppHeader
-  }
+  void _showSettings() {}
   
-  void _showNotifications() {
-    // SnackBar показывается в AppHeader
+  void _showNotifications() {}
+}
+
+// ✅ FIX: Period selector with proper state management
+class _PeriodSelectorWrapper extends StatelessWidget {
+  final int selectedPeriodIndex;
+  final ValueChanged<int> onPeriodChanged;
+
+  const _PeriodSelectorWrapper({
+    required this.selectedPeriodIndex,
+    required this.onPeriodChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<ModsProvider, bool>(
+      selector: (_, provider) => provider.isSearchMode,
+      builder: (context, isSearchMode, child) {
+        if (isSearchMode) {
+          return const SizedBox.shrink();
+        }
+        return _PeriodSelector(
+          selectedPeriodIndex: selectedPeriodIndex,
+          onPeriodChanged: onPeriodChanged,
+        );
+      },
+    );
   }
 }
 
-// Separate widget for mod details to optimize performance
+class _PeriodSelector extends StatelessWidget {
+  final int selectedPeriodIndex;
+  final ValueChanged<int> onPeriodChanged;
+  
+  static const List<String> periods = ['За всё время', 'За месяц', 'За неделю', 'Недавние'];
+
+  const _PeriodSelector({
+    required this.selectedPeriodIndex,
+    required this.onPeriodChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Топ за период',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.w700,
+              height: 1.40,
+            ),
+          ),
+          const SizedBox(height: 15),
+          SizedBox(
+            height: 54,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              itemCount: periods.length,
+              // ✅ FIX: Added cacheExtent
+              cacheExtent: 200,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: PeriodButton(
+                    text: periods[index],
+                    isSelected: selectedPeriodIndex == index,
+                    onPressed: () => onPeriodChanged(index),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ✅ FIX: Optimized mods list content with Selector
+class _ModsListContent extends StatelessWidget {
+  final ScrollController scrollController;
+  final int selectedPeriodIndex;
+  final Function(ModItem) onModTap;
+  final Function(String) onSearchChanged;
+  final TextEditingController? searchController;
+
+  const _ModsListContent({
+    required this.scrollController,
+    required this.selectedPeriodIndex,
+    required this.onModTap,
+    required this.onSearchChanged,
+    this.searchController,
+  });
+
+  static const List<String> periodKeys = ['all_time', 'month', 'week', 'recent'];
+  static const double modCardHeight = 134.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // ✅ FIX: Use Selector instead of Consumer for granular rebuilds
+    return Selector<ModsProvider, ({
+      List<ModItem> mods,
+      List<ModItem> searchResults,
+      bool isLoading,
+      bool isLoadingMore,
+      bool isSearchMode,
+      String? error,
+      String searchQuery,
+    })>(
+      selector: (_, provider) => (
+        mods: provider.mods,
+        searchResults: provider.searchResults,
+        isLoading: provider.isLoading,
+        isLoadingMore: provider.isLoadingMore,
+        isSearchMode: provider.isSearchMode,
+        error: provider.error,
+        searchQuery: provider.currentSearchQuery,
+      ),
+      builder: (context, data, child) {
+        if (data.isLoading && 
+            (data.mods.isEmpty && data.searchResults.isEmpty)) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF388E3C),
+            ),
+          );
+        }
+        
+        if (data.error != null && data.mods.isEmpty && data.searchResults.isEmpty) {
+          return _buildErrorWidget(context, data.error!, data.isSearchMode);
+        }
+        
+        final List<ModItem> currentMods = data.isSearchMode 
+            ? data.searchResults 
+            : data.mods;
+        
+        if (currentMods.isEmpty) {
+          return _buildEmptyWidget(
+            context, 
+            data.isSearchMode, 
+            data.searchQuery,
+          );
+        }
+        
+        return RefreshIndicator(
+          onRefresh: () => context.read<ModsProvider>().refreshMods(),
+          color: const Color(0xFF388E3C),
+          backgroundColor: const Color(0xFF374151),
+          child: ListView.builder(
+            controller: scrollController,
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            itemCount: currentMods.length + (data.isLoadingMore ? 1 : 0),
+            itemExtent: modCardHeight + 10,
+            cacheExtent: 2000, // ✅ FIX: Increased for better performance
+            addAutomaticKeepAlives: true,
+            addRepaintBoundaries: true,
+            itemBuilder: (context, index) {
+              if (index >= currentMods.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF388E3C),
+                    ),
+                  ),
+                );
+              }
+              
+              final mod = currentMods[index];
+              return Padding(
+                key: ValueKey('mod_padding_${mod.id}'),
+                padding: const EdgeInsets.only(bottom: 10),
+                child: ModCard(
+                  key: ValueKey('mod_${mod.id}'),
+                  mod: mod,
+                  onTap: () => onModTap(mod),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildErrorWidget(BuildContext context, String error, bool isSearchMode) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Color(0xFF9CA3AF),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            error,
+            style: const TextStyle(
+              color: Color(0xFF9CA3AF),
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          PeriodButton(
+            text: 'Попробовать снова',
+            onPressed: () {
+              final provider = context.read<ModsProvider>();
+              if (isSearchMode) {
+                provider.searchMods(provider.currentSearchQuery);
+              } else {
+                provider.loadMods(period: periodKeys[selectedPeriodIndex]);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEmptyWidget(
+    BuildContext context, 
+    bool isSearchMode, 
+    String searchQuery,
+  ) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgIcon(
+            assetPath: isSearchMode 
+                ? 'lib/icons/header/search.svg'
+                : 'lib/icons/footer/home.svg',
+            size: 64,
+            color: const Color(0xFF9CA3AF),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isSearchMode 
+                ? 'По запросу "$searchQuery" ничего не найдено'
+                : 'Моды не найдены',
+            style: const TextStyle(
+              color: Color(0xFF9CA3AF),
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (isSearchMode) 
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: PeriodButton(
+                text: 'Показать все моды',
+                onPressed: () {
+                  final provider = context.read<ModsProvider>();
+                  provider.clearSearch();
+                  searchController?.clear();
+                  provider.loadMods(period: periodKeys[selectedPeriodIndex]);
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ModDetailsSheet extends StatefulWidget {
   final ModItem mod;
   final ValueChanged<String> onTagPressed;
@@ -400,21 +481,14 @@ class _ModDetailsSheet extends StatefulWidget {
 }
 
 class _ModDetailsSheetState extends State<_ModDetailsSheet> {
+  late final AuthService _authService;
+
   @override
   void initState() {
     super.initState();
-    print('🔵 MOD DETAILS SHEET OPENED FOR MOD:  [38;5;27m${widget.mod.id} [0m');
-    // Load comments when sheet opens
+    _authService = ServiceLocator().authService;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('🔵 Post frame callback executed');
-      try {
-        final provider = context.read<CommentsProvider>();
-        print('🔵 Provider found: $provider');
-        print('🔵 CALLING loadComments for mod: ${widget.mod.id}');
-        provider.loadComments(widget.mod.id);
-      } catch (e) {
-        print('🔴 ERROR getting provider: $e');
-      }
+      context.read<CommentsProvider>().loadComments(widget.mod.id);
     });
   }
   
@@ -430,7 +504,6 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
         ),
         child: Column(
           children: [
-            // Handle bar
             Container(
               width: 40,
               height: 4,
@@ -444,7 +517,6 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: SingleChildScrollView(
-                  // Important: reverse = true is NOT needed here for bottom alignment
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -465,10 +537,10 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                       ],
                       _buildDownloadButton(context),
                       const SizedBox(height: 20),
-                      _buildCommentsHeader(),
+                      const _CommentsHeaderWidget(),
                       const SizedBox(height: 10),
                       _buildCommentsSection(),
-                      const SizedBox(height: 12), // Было 80
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
@@ -486,11 +558,21 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
     );
   }
   
+  // ✅ FIX: Use Selector instead of Consumer
   Widget _buildCommentsSection() {
-    return Consumer<CommentsProvider>(
-      builder: (context, commentsProvider, child) {
-        // Show loading
-        if (commentsProvider.isLoading) {
+    return Selector<CommentsProvider, ({
+      List comments,
+      bool isLoading,
+      String? error,
+    })>(
+      selector: (_, provider) => (
+        comments: provider.comments,
+        isLoading: provider.isLoading,
+        error: provider.error,
+      ),
+      shouldRebuild: (prev, next) => true, // Always rebuild when provider notifies
+      builder: (context, data, child) {
+        if (data.isLoading) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(20),
@@ -501,13 +583,12 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
           );
         }
         
-        // Show error
-        if (commentsProvider.error != null) {
+        if (data.error != null) {
           return Center(
             child: Column(
               children: [
                 Text(
-                  commentsProvider.error!,
+                  data.error!,
                   style: const TextStyle(
                     color: Colors.red,
                     fontSize: 14,
@@ -518,7 +599,7 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                 PeriodButton(
                   text: 'Попробовать снова',
                   onPressed: () {
-                    commentsProvider.loadComments(widget.mod.id);
+                    context.read<CommentsProvider>().loadComments(widget.mod.id);
                   },
                 ),
               ],
@@ -526,8 +607,7 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
           );
         }
         
-        // Show empty state
-        if (commentsProvider.comments.isEmpty) {
+        if (data.comments.isEmpty) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(20),
@@ -542,16 +622,20 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
           );
         }
         
-        // Show comments list
-         return ListView.builder(
+        return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: commentsProvider.comments.length,
+          itemCount: data.comments.length,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
+          // ✅ FIX: Added cacheExtent
+          cacheExtent: 500,
           itemBuilder: (context, index) {
-            final authService = ServiceLocator().authService;
+            final comment = data.comments[index];
             return CommentCard(
-              comment: commentsProvider.comments[index],
-              currentUserId: authService.currentUserId,
+              key: ValueKey('comment_detail_${comment.id}'),
+              comment: comment,
+              currentUserId: _authService.currentUserId,
             );
           },
         );
@@ -559,43 +643,6 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
     );
   }
 
-  Widget _buildCommentsHeader() {
-    return Consumer<CommentsProvider>(
-      builder: (context, commentsProvider, child) {
-        final count = commentsProvider.comments.length;
-        return Row(
-          children: [
-            const Text(
-              'Комментарии',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF374151),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                count.toString(),
-                style: const TextStyle(
-                  color: Color(0xFFE5E7EB),
-                  fontSize: 12,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-  
   Widget _buildHeader() {
     return Row(
       children: [
@@ -608,6 +655,9 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
               width: 80,
               height: 80,
               fit: BoxFit.cover,
+              cacheWidth: 240,
+              cacheHeight: 240,
+              gaplessPlayback: true,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   width: 80,
@@ -752,6 +802,49 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
           );
         },
       ),
+    );
+  }
+}
+
+class _CommentsHeaderWidget extends StatelessWidget {
+  const _CommentsHeaderWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<CommentsProvider, int>(
+      selector: (_, provider) => provider.comments.length,
+      shouldRebuild: (prev, next) => true, // Always update comment count
+      builder: (context, count, child) {
+        return Row(
+          children: [
+            const Text(
+              'Комментарии',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF374151),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                count.toString(),
+                style: const TextStyle(
+                  color: Color(0xFFE5E7EB),
+                  fontSize: 12,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

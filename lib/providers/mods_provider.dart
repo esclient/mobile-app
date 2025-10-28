@@ -4,20 +4,23 @@ import '../services/mods_service.dart';
 import 'dart:developer';
 import 'dart:async';
 
-/// Provider for managing mods state with optimized data handling
 class ModsProvider extends ChangeNotifier {
   final ModsService _modsService;
   StreamSubscription? _searchSubscription;
+  
+  Timer? _searchDebounceTimer;
+  Timer? _scrollDebounceTimer; // ✅ FIX: Added scroll debouncing
+  static const Duration _searchDebounce = Duration(milliseconds: 300);
   
   ModsProvider(this._modsService) {
     _initializeProvider();
   }
 
-  // State variables
   List<ModItem> _mods = [];
   List<ModItem> _searchResults = [];
   bool _isLoading = false;
   bool _isSearching = false;
+  bool _isLoadingMore = false; // ✅ FIX: Separate loading state for pagination
   String? _error;
   String _currentSearchQuery = '';
   String _currentPeriod = 'all_time';
@@ -25,30 +28,29 @@ class ModsProvider extends ChangeNotifier {
   final int _pageSize = 20;
   bool _hasMoreMods = true;
 
-  // Getters
   List<ModItem> get mods => _mods;
   List<ModItem> get searchResults => _searchResults;
   bool get isLoading => _isLoading;
   bool get isSearching => _isSearching;
+  bool get isLoadingMore => _isLoadingMore; // ✅ FIX: Expose loading more state
   String? get error => _error;
   String get currentSearchQuery => _currentSearchQuery;
   bool get hasMoreMods => _hasMoreMods;
   bool get isSearchMode => _currentSearchQuery.isNotEmpty;
 
   void _initializeProvider() {
-    // Prefetch popular mods for better initial loading
     _modsService.prefetchPopularMods();
   }
 
-  /// Load initial mods
   Future<void> loadMods({String period = 'all_time'}) async {
-    if (_isLoading) return;
+    if (_isLoading && _currentPeriod == period) return;
     
     _isLoading = true;
     _error = null;
     _currentPeriod = period;
     _currentOffset = 0;
     _hasMoreMods = true;
+    
     notifyListeners();
     
     try {
@@ -58,23 +60,29 @@ class ModsProvider extends ChangeNotifier {
         offset: 0,
       );
       
+      // ✅ FIX: Check if period still matches before updating
+      if (_currentPeriod != period) return;
+      
       _mods = newMods;
       _hasMoreMods = newMods.length == _pageSize;
       _currentOffset = newMods.length;
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
-      log('Error loading mods: $e');
+      log('Error loading mods: $e', name: 'ModsProvider');
       _error = 'Failed to load mods: ${e.toString()}';
-    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Load more mods for pagination
   Future<void> loadMoreMods() async {
-    if (_isLoading || !_hasMoreMods || _currentSearchQuery.isNotEmpty) return;
+    // ✅ FIX: Use separate loading state to prevent blocking
+    if (_isLoading || _isLoadingMore || !_hasMoreMods || _currentSearchQuery.isNotEmpty) {
+      return;
+    }
     
-    _isLoading = true;
+    _isLoadingMore = true;
     _error = null;
     notifyListeners();
     
@@ -85,19 +93,34 @@ class ModsProvider extends ChangeNotifier {
         offset: _currentOffset,
       );
       
-      _mods.addAll(newMods);
-      _hasMoreMods = newMods.length == _pageSize;
-      _currentOffset += newMods.length;
+      if (newMods.isNotEmpty) {
+        // ✅ FIX: Batch list operations
+        final updatedMods = [..._mods, ...newMods];
+        _mods = updatedMods;
+        _hasMoreMods = newMods.length == _pageSize;
+        _currentOffset = _mods.length;
+      } else {
+        _hasMoreMods = false;
+      }
+      
+      _isLoadingMore = false;
+      notifyListeners();
     } catch (e) {
-      log('Error loading more mods: $e');
+      log('Error loading more mods: $e', name: 'ModsProvider');
       _error = 'Failed to load more mods: ${e.toString()}';
-    } finally {
-      _isLoading = false;
+      _isLoadingMore = false;
       notifyListeners();
     }
   }
 
-  /// Search mods with debouncing
+  // ✅ FIX: Added debounced wrapper for scroll loading
+  void requestLoadMoreMods() {
+    _scrollDebounceTimer?.cancel();
+    _scrollDebounceTimer = Timer(const Duration(milliseconds: 100), () {
+      loadMoreMods();
+    });
+  }
+
   void searchMods(String query) {
     _currentSearchQuery = query;
     
@@ -106,37 +129,48 @@ class ModsProvider extends ChangeNotifier {
       return;
     }
     
-    // Cancel previous search subscription
-    _searchSubscription?.cancel();
+    // Cancel previous search timer
+    _searchDebounceTimer?.cancel();
     
-    _isSearching = true;
-    _error = null;
-    notifyListeners();
+    // ✅ FIX: Only notify after debounce completes
+    _searchDebounceTimer = Timer(_searchDebounce, () {
+      // Set searching state right before performing search
+      _isSearching = true;
+      _error = null;
+      notifyListeners();
+      
+      _performSearch(query);
+    });
+  }
+
+  void _performSearch(String query) {
+    _searchSubscription?.cancel();
     
     _modsService.triggerSearch(query);
     
-    // Listen to search results
     _searchSubscription = _modsService.searchModsStream(query).listen(
       (results) {
-        if (_currentSearchQuery == query) { // Only update if still current query
-          _searchResults = results;
-          _isSearching = false;
-          notifyListeners();
-        }
+        // ✅ FIX: Early return if query changed
+        if (_currentSearchQuery != query) return;
+        
+        _searchResults = results;
+        _isSearching = false;
+        notifyListeners();
       },
       onError: (error) {
-        if (_currentSearchQuery == query) {
-          log('Search error: $error');
-          _error = 'Search failed: ${error.toString()}';
-          _isSearching = false;
-          notifyListeners();
-        }
+        // ✅ FIX: Early return if query changed
+        if (_currentSearchQuery != query) return;
+        
+        log('Search error: $error', name: 'ModsProvider');
+        _error = 'Search failed: ${error.toString()}';
+        _isSearching = false;
+        notifyListeners();
       },
     );
   }
 
-  /// Clear search and return to main mods list
   void clearSearch() {
+    _searchDebounceTimer?.cancel();
     _searchSubscription?.cancel();
     _clearSearch();
     notifyListeners();
@@ -149,55 +183,51 @@ class ModsProvider extends ChangeNotifier {
     _error = null;
   }
 
-  /// Refresh mods (pull to refresh)
   Future<void> refreshMods() async {
     _modsService.clearCache();
     await loadMods(period: _currentPeriod);
   }
 
-  /// Get mod by ID
   Future<ModItem?> getModById(String id) async {
-    // First check if mod is already in memory
-    ModItem? mod = _mods.cast<ModItem?>().firstWhere(
-      (m) => m?.id == id,
-      orElse: () => null,
-    );
+    // Try to find in current mods first
+    try {
+      return _mods.firstWhere((m) => m.id == id);
+    } catch (_) {
+      // Not found in mods
+    }
     
-    if (mod != null) return mod;
+    // Try search results
+    try {
+      return _searchResults.firstWhere((m) => m.id == id);
+    } catch (_) {
+      // Not found in search results
+    }
     
-    // Check search results
-    mod = _searchResults.cast<ModItem?>().firstWhere(
-      (m) => m?.id == id,
-      orElse: () => null,
-    );
-    
-    if (mod != null) return mod;
-    
-    // Fetch from API if not in memory
+    // Fetch from service as last resort
     try {
       return await _modsService.fetchMod(id);
     } catch (e) {
-      log('Error fetching mod: $e');
+      log('Error fetching mod: $e', name: 'ModsProvider');
       _error = 'Failed to fetch mod: ${e.toString()}';
       notifyListeners();
       return null;
     }
   }
 
-  /// Toggle favorite status (placeholder for future implementation)
   Future<void> toggleFavorite(String modId) async {
-    // TODO: Implement favorite functionality
-    log('Toggle favorite for mod: $modId');
+    log('Toggle favorite for mod: $modId', name: 'ModsProvider');
+    // TODO: Implement favorite toggle
   }
 
-  /// Report a mod (placeholder for future implementation)
   Future<void> reportMod(String modId, String reason) async {
-    // TODO: Implement reporting functionality
-    log('Report mod $modId for: $reason');
+    log('Report mod $modId for: $reason', name: 'ModsProvider');
+    // TODO: Implement mod reporting
   }
 
   @override
   void dispose() {
+    _searchDebounceTimer?.cancel();
+    _scrollDebounceTimer?.cancel();
     _searchSubscription?.cancel();
     _modsService.dispose();
     super.dispose();

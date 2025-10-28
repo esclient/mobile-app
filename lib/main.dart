@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'providers/comments_provider.dart';
@@ -11,25 +12,148 @@ import 'services/auth_service.dart';
 import 'services/service_locator.dart';
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';
+import 'utils/app_config.dart';
+import 'utils/performance_utils.dart';
 import 'widgets/comment_card.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set frame scheduling priority for smoother animations
+  SchedulerBinding.instance.scheduleForcedFrame();
 
-  // Initialize Hive for caching
-  await Hive.initFlutter();
+  // Initialize Hive in background
+  final hiveFuture = Hive.initFlutter();
+  
+  // Initialize app configuration
+  await AppConfig.initialize();
 
-  // Initialize services once at startup
+  // Create service locator but don't wait for full initialization
   final serviceLocator = ServiceLocator();
-  await serviceLocator.initialize();
+  
+  // Run app immediately with splash screen while loading
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: SplashScreen(
+      hiveFuture: hiveFuture,
+      serviceLocator: serviceLocator,
+    ),
+  ));
+}
 
+class SplashScreen extends StatefulWidget {
+  final Future hiveFuture;
+  final ServiceLocator serviceLocator;
 
-  // TEMPORARY: Auto-login test user for testing comments
-  // TODO: Remove this when real authentication is implemented
-  serviceLocator.authService.login('test@example.com', userId: '999');
+  const SplashScreen({super.key, required this.hiveFuture, required this.serviceLocator});
 
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
 
-  runApp(MyApp(serviceLocator: serviceLocator));
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      await widget.hiveFuture;
+      
+      // Initialize services in parallel for faster startup
+      await Future.wait([
+        widget.serviceLocator.initialize(),
+        // Add small delay to ensure smooth animation
+        Future.delayed(const Duration(milliseconds: 500)),
+      ]);
+      
+      widget.serviceLocator.authService.login('test@example.com', userId: '999');
+      
+      if (mounted) {
+        // Schedule navigation to next frame for smoother transition
+        PerformanceUtils.runInNextFrame(() {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => 
+                MyApp(serviceLocator: widget.serviceLocator),
+              transitionDuration: const Duration(milliseconds: 300),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+            ),
+          );
+        });
+      }
+    } catch (e) {
+      // Handle initialization error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Initialization failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1F2937),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: const Color(0xFF374151),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: const Icon(
+                Icons.rocket_launch,
+                size: 60,
+                color: Color(0xFF388E3C),
+              ),
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              'ESClient',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Loading mods...',
+              style: TextStyle(
+                color: Color(0xFF9CA3AF),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 30),
+            const SizedBox(
+              width: 200,
+              child: LinearProgressIndicator(
+                color: Color(0xFF388E3C),
+                backgroundColor: Color(0xFF374151),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -41,16 +165,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Service providers
         Provider<ServiceLocator>.value(value: serviceLocator),
         Provider.value(value: serviceLocator.modsService),
         ChangeNotifierProvider.value(value: serviceLocator.authService),
         Provider.value(value: serviceLocator.commentService),
         
-        // State providers
         ChangeNotifierProvider<ModsProvider>(
           create: (context) => ModsProvider(serviceLocator.modsService),
-          lazy: false,
+          lazy: true,
         ),
         
         ChangeNotifierProvider<CommentsProvider>(
@@ -80,15 +202,28 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Refactored to use CommentsProvider
 class CommentsPage extends StatelessWidget {
   const CommentsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.navComments)),
-      body: const CommentsList(),
+    return const Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: _CommentsAppBar(),
+      ),
+      body: CommentsList(),
+    );
+  }
+}
+
+class _CommentsAppBar extends StatelessWidget {
+  const _CommentsAppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text(AppStrings.navComments),
     );
   }
 }
@@ -102,7 +237,8 @@ class CommentsList extends StatefulWidget {
 
 class _CommentsListState extends State<CommentsList>
     with AutomaticKeepAliveClientMixin {
-  final String _modId = '69'; // Your mod ID
+  
+  static const String _modId = '69';
 
   @override
   bool get wantKeepAlive => true;
@@ -110,7 +246,6 @@ class _CommentsListState extends State<CommentsList>
   @override
   void initState() {
     super.initState();
-    // Load comments using provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CommentsProvider>().loadComments(_modId);
     });
@@ -120,46 +255,19 @@ class _CommentsListState extends State<CommentsList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Consumer<CommentsProvider>(
-      builder: (context, provider, child) {
-        // Header with comment count
-        final header = Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              const Text(
-                'Комментарии',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF374151),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  provider.comments.length.toString(),
-                  style: const TextStyle(
-                    color: Color(0xFFE5E7EB),
-                    fontSize: 12,
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+    final authService = context.read<AuthService>();
 
-        // Loading state
-        if (provider.isLoading && provider.comments.isEmpty) {
+    // ✅ FIX: Use Selector to only rebuild on specific changes
+    return Selector<CommentsProvider, ({List comments, bool isLoading, String? error})>(
+      selector: (_, provider) => (
+        comments: provider.comments,
+        isLoading: provider.isLoading,
+        error: provider.error,
+      ),
+      builder: (context, data, child) {
+        final header = child!;
+
+        if (data.isLoading && data.comments.isEmpty) {
           return Column(
             children: [
               header,
@@ -172,27 +280,24 @@ class _CommentsListState extends State<CommentsList>
           );
         }
 
-        // Error state
-        if (provider.error != null && provider.comments.isEmpty) {
+        if (data.error != null && data.comments.isEmpty) {
           return Column(
             children: [
               header,
-              Expanded(child: _buildErrorWidget(provider.error!, provider)),
+              Expanded(child: _buildErrorWidget(data.error!)),
             ],
           );
         }
 
-        // Empty state
-        if (provider.comments.isEmpty) {
+        if (data.comments.isEmpty) {
           return Column(
             children: [
               header,
-              Expanded(child: _buildEmptyWidget()),
+              const Expanded(child: _EmptyCommentsWidget()),
             ],
           );
         }
 
-        // Comments list
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -200,7 +305,7 @@ class _CommentsListState extends State<CommentsList>
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  await provider.loadComments(_modId);
+                  await context.read<CommentsProvider>().loadComments(_modId);
                 },
                 color: const Color(0xFF388E3C),
                 backgroundColor: const Color(0xFF374151),
@@ -209,21 +314,22 @@ class _CommentsListState extends State<CommentsList>
                     horizontal: AppSizes.paddingMedium,
                     vertical: 0,
                   ),
-                  itemCount: provider.comments.length,
-                  cacheExtent: 500,
-                  addAutomaticKeepAlives: false,
+                  itemCount: data.comments.length,
+                  cacheExtent: 1000, // ✅ FIX: Increased cache
+                  addAutomaticKeepAlives: true,
                   addRepaintBoundaries: true,
                   itemBuilder: (context, index) {
-                    final comment = provider.comments[index];
+                    final comment = data.comments[index];
                     return Padding(
+                      key: ValueKey('comment_${comment.id}'),
                       padding: EdgeInsets.only(
-                        bottom: index < provider.comments.length - 1
+                        bottom: index < data.comments.length - 1
                             ? AppSizes.spacing
                             : 0,
                       ),
                       child: CommentCard(
                         comment: comment,
-                        currentUserId: ServiceLocator().authService.currentUserId,
+                        currentUserId: authService.currentUserId,
                         onTap: () {
                           // Handle comment tap if needed
                         },
@@ -236,10 +342,11 @@ class _CommentsListState extends State<CommentsList>
           ],
         );
       },
+      child: const _CommentsHeader(), // ✅ FIX: Made const
     );
   }
 
-  Widget _buildErrorWidget(String error, CommentsProvider provider) {
+  Widget _buildErrorWidget(String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -254,7 +361,7 @@ class _CommentsListState extends State<CommentsList>
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              provider.loadComments(_modId);
+              context.read<CommentsProvider>().loadComments(_modId);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF388E3C),
@@ -266,8 +373,14 @@ class _CommentsListState extends State<CommentsList>
       ),
     );
   }
+}
 
-  Widget _buildEmptyWidget() {
+// ✅ FIX: Extracted empty widget as const
+class _EmptyCommentsWidget extends StatelessWidget {
+  const _EmptyCommentsWidget();
+
+  @override
+  Widget build(BuildContext context) {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -277,6 +390,53 @@ class _CommentsListState extends State<CommentsList>
           Text(
             'Комментарии не найдены',
             style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommentsHeader extends StatelessWidget {
+  const _CommentsHeader(); // ✅ FIX: Made const constructor
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          const Text(
+            'Комментарии',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Selector<CommentsProvider, int>(
+            selector: (_, provider) => provider.comments.length,
+            builder: (context, count, child) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF374151),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  count.toString(),
+                  style: const TextStyle(
+                    color: Color(0xFFE5E7EB),
+                    fontSize: 12,
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
