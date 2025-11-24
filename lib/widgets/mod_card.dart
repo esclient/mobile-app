@@ -31,9 +31,10 @@ class ModCard extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(10),
+            // TODO_PROD: Вернуть EdgeInsets.all(10) при возвращении всех элементов
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildLeftSection(),
                 const SizedBox(width: 13),
@@ -49,6 +50,18 @@ class ModCard extends StatelessWidget {
   // ✅ FIX: Wrapped in RepaintBoundary to isolate repaints
   Widget _buildLeftSection() {
     return RepaintBoundary(
+      // TODO_PROD: Убрать Center при возвращении рейтингов
+      child: Center(
+        child: Hero(
+          tag: 'mod_image_${mod.id}',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: _buildModImage(),
+          ),
+        ),
+      ),
+      // TODO_PROD: Раскомментировать при возвращении рейтингов
+      /*
       child: Column(
         children: [
           Hero(
@@ -62,30 +75,35 @@ class ModCard extends StatelessWidget {
           _buildRatingSection(),
         ],
       ),
+      */
     );
   }
 
   Widget _buildModImage() {
+    // TODO_PROD: Вернуть размер 48x48 при возвращении рейтингов
+    const double imageSize = 80;
+    const int cacheSize = 240;
+    
     if (mod.imageUrl.startsWith('http')) {
       return CachedNetworkImage(
         imageUrl: mod.imageUrl,
-        width: 48,
-        height: 48,
-        memCacheWidth: 144,
-        memCacheHeight: 144,
-        maxWidthDiskCache: 144,
-        maxHeightDiskCache: 144,
+        width: imageSize,
+        height: imageSize,
+        memCacheWidth: cacheSize,
+        memCacheHeight: cacheSize,
+        maxWidthDiskCache: cacheSize,
+        maxHeightDiskCache: cacheSize,
         fit: BoxFit.cover,
         fadeInDuration: const Duration(milliseconds: 150), // ✅ FIX: Reduced from 200ms
         fadeOutDuration: const Duration(milliseconds: 75), // ✅ FIX: Reduced from 100ms
         placeholder: (context, url) => Container(
-          width: 48,
-          height: 48,
+          width: imageSize,
+          height: imageSize,
           color: const Color(0xFF374151),
           child: const Center(
             child: SizedBox(
-              width: 20,
-              height: 20,
+              width: 30,
+              height: 30,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: Color(0xFF9CA3AF),
@@ -94,35 +112,35 @@ class ModCard extends StatelessWidget {
           ),
         ),
         errorWidget: (context, url, error) => Container(
-          width: 48,
-          height: 48,
+          width: imageSize,
+          height: imageSize,
           color: const Color(0xFF374151),
           child: const Icon(
             Icons.image_not_supported,
             color: Color(0xFF9CA3AF),
-            size: 24,
+            size: 40,
           ),
         ),
       );
     } else {
       return Image.asset(
         'lib/icons/main/mod_test_pfp.png',
-        width: 48,
-        height: 48,
+        width: imageSize,
+        height: imageSize,
         fit: BoxFit.cover,
-        cacheWidth: 144,
-        cacheHeight: 144,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
         // ✅ FIX: Added gaplessPlayback for smoother loading
         gaplessPlayback: true,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            width: 48,
-            height: 48,
+            width: imageSize,
+            height: imageSize,
             color: const Color(0xFF374151),
             child: const Icon(
               Icons.image_not_supported,
               color: Color(0xFF9CA3AF),
-              size: 24,
+              size: 40,
             ),
           );
         },
@@ -170,7 +188,8 @@ class ModCard extends StatelessWidget {
   Widget _buildRightSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
+      // TODO_PROD: Вернуть MainAxisAlignment.start при возвращении тегов
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           mod.title,
@@ -185,26 +204,28 @@ class ModCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
-        Expanded(
-          child: Text(
-            mod.description,
-            style: const TextStyle(
-              color: Color(0xFFD1D5DB),
-              fontSize: 12,
-              fontFamily: 'Roboto',
-              fontWeight: FontWeight.w400,
-              height: 1.62,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        // TODO_PROD: Вернуть Expanded при возвращении тегов
+        Text(
+          mod.description,
+          style: const TextStyle(
+            color: Color(0xFFD1D5DB),
+            fontSize: 12,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w400,
+            height: 1.62,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
+        // TODO_PROD: Раскомментировать при реализации тегов
+        /*
         const SizedBox(height: 10),
         if (mod.tags.isNotEmpty)
           SizedBox(
             height: 26,
             child: _TagsList(tags: mod.tags),
           ),
+        */
       ],
     );
   }

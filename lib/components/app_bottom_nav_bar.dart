@@ -47,6 +47,8 @@ class AppBottomNavBar extends StatelessWidget {
                 }
               },
             ),
+            // TODO_PROD: Раскомментировать при реализации закладок
+            if (false)
             _buildNavItem(
               context: context,
               label: 'Закладки',
@@ -66,6 +68,8 @@ class AppBottomNavBar extends StatelessWidget {
                 // }
               },
             ),
+            // TODO_PROD: Раскомментировать при реализации профиля
+            if (false)
             _buildNavItem(
               context: context,
               label: 'Профиль',

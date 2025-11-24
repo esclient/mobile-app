@@ -91,6 +91,8 @@ class _ModsListPageState extends State<ModsListPage>
     
     return Scaffold(
       backgroundColor: const Color(0xFF1F2937),
+      // TODO_PROD: Раскомментировать при реализации поиска
+      /*
       appBar: AppHeader(
         showActualSearchBar: true,
         searchQuery: context.select<ModsProvider, String?>(
@@ -106,9 +108,12 @@ class _ModsListPageState extends State<ModsListPage>
         onSettingsPressed: _showSettings,
         onNotificationPressed: _showNotifications,
       ),
+      */
       body: Column(
         children: [
+          // TODO_PROD: Раскомментировать при реализации фильтров по периодам
           // ✅ FIX: Pass period state to child
+          if (false)
           _PeriodSelectorWrapper(
             selectedPeriodIndex: selectedPeriodIndex,
             onPeriodChanged: _onPeriodChanged,
@@ -118,16 +123,24 @@ class _ModsListPageState extends State<ModsListPage>
           ),
         ],
       ),
+      // TODO_PROD: Раскомментировать при реализации навигации
+      /*
       bottomNavigationBar: AppBottomNavBar(
         activeIndex: 0, 
         authService: ServiceLocator().authService,
       ),
+      */
     );
   }
 
   Widget _buildModsList() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      // TODO_PROD: Убрать отступ сверху при возвращении AppHeader
+      padding: EdgeInsets.only(
+        left: 10,
+        right: 10,
+        top: MediaQuery.of(context).padding.top + 16, // Отступ от status bar
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -531,16 +544,22 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                         ),
                       ),
                       const SizedBox(height: 20),
+                      // TODO_PROD: Раскомментировать при реализации тегов
+                      /*
                       if (widget.mod.tags.isNotEmpty) ...[
                         _buildTags(context),
                         const SizedBox(height: 20),
                       ],
+                      */
                       _buildDownloadButton(context),
+                      // TODO_PROD: Раскомментировать при реализации комментариев
+                      /*
                       const SizedBox(height: 20),
                       const _CommentsHeaderWidget(),
                       const SizedBox(height: 10),
                       _buildCommentsSection(),
                       const SizedBox(height: 12),
+                      */
                     ],
                   ),
                 ),
@@ -549,12 +568,15 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
           ],
         ),
       ),
+      // TODO_PROD: Раскомментировать при реализации комментариев
+      /*
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: CommentInputWidget(modId: widget.mod.id),
       ),
+      */
     );
   }
   
@@ -716,6 +738,8 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                   ),
                 ],
               ),
+              // TODO_PROD: Раскомментировать при реализации рейтингов и статистики скачиваний
+              /*
               const SizedBox(height: 5),
               Row(
                 children: [
@@ -761,6 +785,7 @@ class _ModDetailsSheetState extends State<_ModDetailsSheet> {
                   ),
                 ],
               ),
+              */
             ],
           ),
         ),

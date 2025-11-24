@@ -55,26 +55,29 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
           ),
+          // TODO_PROD: Раскомментировать при реализации настроек и уведомлений
           // Action buttons rendered by AppHeader itself
-          if (onSettingsPressed != null) ...[
-            const SizedBox(width: 8),
-            _buildActionButton(
-              iconAsset: 'lib/icons/header/gear.svg',
-              onTap: onSettingsPressed!,
-              context: context,
-              tooltip:
-                  'Настройки пока не реализованы', // Generic tooltip or could be passed
-            ),
-          ],
-          if (onNotificationPressed != null) ...[
-            const SizedBox(width: 8),
-            _buildActionButton(
-              iconAsset: 'lib/icons/header/notification.svg',
-              onTap: onNotificationPressed!,
-              context: context,
-              tooltip:
-                  'Уведомления пока не реализованы', // Generic tooltip or could be passed
-            ),
+          if (false) ...[
+            if (onSettingsPressed != null) ...[
+              const SizedBox(width: 8),
+              _buildActionButton(
+                iconAsset: 'lib/icons/header/gear.svg',
+                onTap: onSettingsPressed!,
+                context: context,
+                tooltip:
+                    'Настройки пока не реализованы', // Generic tooltip or could be passed
+              ),
+            ],
+            if (onNotificationPressed != null) ...[
+              const SizedBox(width: 8),
+              _buildActionButton(
+                iconAsset: 'lib/icons/header/notification.svg',
+                onTap: onNotificationPressed!,
+                context: context,
+                tooltip:
+                    'Уведомления пока не реализованы', // Generic tooltip or could be passed
+              ),
+            ],
           ],
         ],
       );
@@ -120,24 +123,27 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+          // TODO_PROD: Раскомментировать при реализации настроек и уведомлений
           // External action buttons for screens without InteractiveSearchBar
-          if (onSettingsPressed != null) ...[
-            const SizedBox(width: 8),
-            _buildActionButton(
-              iconAsset: 'lib/icons/header/gear.svg',
-              onTap: onSettingsPressed!,
-              context: context,
-              tooltip: 'Настройки профиля пока не реализованы',
-            ),
-          ],
-          if (onNotificationPressed != null) ...[
-            const SizedBox(width: 8),
-            _buildActionButton(
-              iconAsset: 'lib/icons/header/notification.svg',
-              onTap: onNotificationPressed!,
-              context: context,
-              tooltip: 'Уведомления пока не реализованы',
-            ),
+          if (false) ...[
+            if (onSettingsPressed != null) ...[
+              const SizedBox(width: 8),
+              _buildActionButton(
+                iconAsset: 'lib/icons/header/gear.svg',
+                onTap: onSettingsPressed!,
+                context: context,
+                tooltip: 'Настройки профиля пока не реализованы',
+              ),
+            ],
+            if (onNotificationPressed != null) ...[
+              const SizedBox(width: 8),
+              _buildActionButton(
+                iconAsset: 'lib/icons/header/notification.svg',
+                onTap: onNotificationPressed!,
+                context: context,
+                tooltip: 'Уведомления пока не реализованы',
+              ),
+            ],
           ],
         ],
       );
